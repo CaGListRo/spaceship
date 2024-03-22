@@ -19,15 +19,26 @@ class Game:
 
         # Create player and add to groups
         self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
-        self.spaceship = Spaceship(self.player_group, self.player_pos)
+        self.spaceship = Spaceship(self.player_group, self.projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
 
         self.run = True
 
-    def handle_enemies(self, dt):
-        # if randint(1, 100) * dt > 0.8:
-        if len(self.enemy_group) < 2:
-            enemy_creator(self.enemy_group)
+    def handle_projectile_player_collision(self):
+        for projectile in self.projectile_group:
+            overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, True)
+            if overlap_sprites:
+                projectile.kill()
+
+    def handle_projectile_enemy_collision(self):
+        for projectile in self.projectile_group:
+            overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, True)
+            if overlap_sprites:
+                projectile.kill()
+
+    def handle_enemies(self):
+        if len(self.enemy_group) < 3:
+            enemy_creator(self.enemy_group, self.projectile_group)
 
     def handle_events(self):
         for event in pg.event.get():
@@ -56,6 +67,7 @@ class Game:
 
     def update_groups(self, dt):
         self.player_group.update(dt, self.move_x, self.move_y)
+        self.projectile_group.update(dt)
         self.enemy_group.update(dt)
 
     def draw_window(self):
@@ -63,6 +75,7 @@ class Game:
         self.game_window.fill('blue')
 
         self.enemy_group.draw(self.game_window)
+        self.projectile_group.draw(self.game_window)
         self.player_group.draw(self.game_window)
 
         pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
@@ -76,9 +89,11 @@ class Game:
             last_time = time()
 
             self.handle_events()
-            self.handle_enemies(dt)
+            self.handle_enemies()
 
             self.update_groups(dt)
+            self.handle_projectile_enemy_collision()
+            self.handle_projectile_player_collision()
 
             self.draw_window()
 

@@ -1,19 +1,25 @@
 import settings as stgs
+from projectile import Projectile
 
 import pygame as pg
 
 
 class Spaceship(pg.sprite.Sprite):
-    def __init__(self, groups, pos):
-        super().__init__(groups)
+    def __init__(self, player_group, projectile_group, pos):
+        super().__init__(player_group)
+        self.projectile_group = projectile_group
         self.image = pg.Surface((38, 50))
         self.image.fill('green')
         self.rect = self.image.get_rect(center = pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
-        self.speed = 300
+        self.shoot_timer = 0
+        self.fire_rate = 0.5
+        self.speed = 200
 
     def update(self, dt, move_x=(0, 0), move_y=(0, 0)):
+        self.auto_fire(dt)
+
         self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
         if self.pos.x < 0:
             self.pos.x = 0
@@ -27,3 +33,10 @@ class Spaceship(pg.sprite.Sprite):
         elif self.pos.y + self.image.get_height() > stgs.GAME_WINDOW_RESOLUTION[1]:
             self.pos.y = stgs.GAME_WINDOW_RESOLUTION[1]  - self.image.get_height()
         self.rect.y = self.pos.y
+
+    def auto_fire(self, dt):
+        self.shoot_timer += dt
+        if self.shoot_timer > max(0.2, self.fire_rate):
+            Projectile(self.projectile_group, (self.pos.x + 9, self.pos.y - 10), -1)
+            Projectile(self.projectile_group, (self.pos.x + 27, self.pos.y - 10), -1)
+            self.shoot_timer = 0
