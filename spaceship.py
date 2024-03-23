@@ -16,6 +16,12 @@ class Spaceship(pg.sprite.Sprite):
         self.shoot_timer = 0
         self.fire_rate = 0.5
         self.speed = 200
+        self.health = 10
+
+    def take_damage(self):
+        self.health -= 1
+        if self.health <= 0:
+            self.kill()
 
     def update(self, dt, move_x=(0, 0), move_y=(0, 0)):
         self.auto_fire(dt)

@@ -6,16 +6,26 @@ from random import randint
 
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, enemy_group, projectile_group, pos):
+    def __init__(self, game, health, enemy_group, projectile_group, pos):
         super().__init__(enemy_group)
+        self.game = game
+        self.health = int(health)
+        self.score_factor = int(health)
         self.projectile_group = projectile_group
         self.image = pg.Surface((38, 50))
-        self.image.fill('red')
+        color = 'red' if self.health == 1 else 'orange'
+        self.image.fill(color)
         self.rect = self.image.get_rect(center = pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
         self.speed = 100
         self.shooting_timer = 1
+
+    def take_damage(self):
+        self.health -= 1
+        if self.health <= 0:
+            self.kill()
+            self.game.score += 50 * self.score_factor
 
     def update(self, dt):
         self.direction.y = 1

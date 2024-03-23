@@ -22,23 +22,35 @@ class Game:
         self.spaceship = Spaceship(self.player_group, self.projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
 
+        self.score_font = pg.font.SysFont("comicsans", 42)
+
         self.run = True
+        self.score = 0
+        self.phase = 1
+        self.wave = 0
 
     def handle_projectile_player_collision(self):
         for projectile in self.projectile_group:
-            overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, True)
+            overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False)
             if overlap_sprites:
-                projectile.kill()
+                for sprite in overlap_sprites:
+                    sprite.take_damage()
+                    projectile.kill()
 
     def handle_projectile_enemy_collision(self):
         for projectile in self.projectile_group:
-            overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, True)
+            overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False)
             if overlap_sprites:
-                projectile.kill()
+                for sprite in overlap_sprites:
+                    sprite.take_damage()
+                    projectile.kill()
+                    self.score += 10
 
     def handle_enemies(self):
-        if len(self.enemy_group) < 3:
-            enemy_creator(self.enemy_group, self.projectile_group)
+        if self.wave != 20:
+            if len(self.enemy_group) < 2:
+                enemy_creator(self, self.enemy_group, self.projectile_group, self.phase, self.wave)
+                self.wave += 1
 
     def handle_events(self):
         for event in pg.event.get():
@@ -70,10 +82,15 @@ class Game:
         self.projectile_group.update(dt)
         self.enemy_group.update(dt)
 
+    def draw_score(self):
+        score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
+        self.main_window.blit(score_to_blit, (8, 8))
+
     def draw_window(self):
         self.main_window.fill('black')
         self.game_window.fill('blue')
 
+        self.draw_score()
         self.enemy_group.draw(self.game_window)
         self.projectile_group.draw(self.game_window)
         self.player_group.draw(self.game_window)
