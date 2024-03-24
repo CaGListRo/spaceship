@@ -1,4 +1,5 @@
 import settings as stgs
+from utils import load_image
 from projectile import Projectile
 
 import pygame as pg
@@ -12,9 +13,9 @@ class Enemy(pg.sprite.Sprite):
         self.health = int(health)
         self.score_factor = int(health)
         self.projectile_group = projectile_group
-        self.image = pg.Surface((38, 50))
-        color = 'red' if self.health == 1 else 'orange'
-        self.image.fill(color)
+        ship_path = "ship1" if self.health == 1 else "ship2"
+        self.image = load_image("enemies/" + ship_path + "/idle", "00")
+        self.image = pg.transform.scale(self.image, (self.image.get_width()//4, self.image.get_height()//4))
         self.rect = self.image.get_rect(center = pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()

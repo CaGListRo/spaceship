@@ -1,4 +1,5 @@
 import settings as stgs
+from utils import load_image
 from projectile import Projectile
 
 import pygame as pg
@@ -8,8 +9,8 @@ class Spaceship(pg.sprite.Sprite):
     def __init__(self, player_group, projectile_group, pos):
         super().__init__(player_group)
         self.projectile_group = projectile_group
-        self.image = pg.Surface((38, 50))
-        self.image.fill('green')
+        self.image = load_image("Ship/idle", "00")
+        self.image = pg.transform.scale(self.image, (self.image.get_width()//4, self.image.get_height()//4))
         self.rect = self.image.get_rect(center = pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()

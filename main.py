@@ -1,6 +1,6 @@
 import settings as stgs
 from spaceship import Spaceship
-from utils import enemy_creator
+from enemy_creator import enemy_creator
 
 from time import time
 import pygame as pg
