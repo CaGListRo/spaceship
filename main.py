@@ -1,6 +1,7 @@
 import settings as stgs
 from spaceship import Spaceship
 from enemy_creator import enemy_creator
+from utils import load_image, load_images, Animation
 
 from time import time
 import pygame as pg
@@ -17,9 +18,19 @@ class Game:
         self.enemy_group = pg.sprite.Group()
         self.projectile_group = pg.sprite.Group()
 
+        self.assets = {
+            "background": load_image("backgrounds", "00.png", 1),
+            "ship/idle": Animation(load_images("Ship/idle", scale_factor=0.25), animation_duration=1),
+            "ship/curve": Animation(load_images("Ship/curve", scale_factor=0.25), animation_duration=1),
+            "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=1),
+            "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=1),
+            "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=1),
+            "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=1),
+        }
+
         # Create player and add to groups
         self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
-        self.spaceship = Spaceship(self.player_group, self.projectile_group, self.player_pos)
+        self.spaceship = Spaceship(self, self.player_group, self.projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
 
         self.score_font = pg.font.SysFont("comicsans", 42)
@@ -87,8 +98,8 @@ class Game:
         self.main_window.blit(score_to_blit, (8, 8))
 
     def draw_window(self):
-        self.main_window.fill('black')
-        self.game_window.fill('blue')
+        self.main_window.fill('blue')
+        self.game_window.blit(self.assets["background"], (0, -2000))
 
         self.draw_score()
         self.enemy_group.draw(self.game_window)

@@ -7,6 +7,7 @@ class Projectile(pg.sprite.Sprite):
     def __init__(self, group, pos, direction):
         super().__init__(group)
         self.image = pg.Surface((5, 10))
+        self.image.fill("white")
         self.rect = self.image.get_rect(center=pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = direction

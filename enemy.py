@@ -13,9 +13,9 @@ class Enemy(pg.sprite.Sprite):
         self.health = int(health)
         self.score_factor = int(health)
         self.projectile_group = projectile_group
-        ship_path = "ship1" if self.health == 1 else "ship2"
-        self.image = load_image("enemies/" + ship_path + "/idle", "00")
-        self.image = pg.transform.scale(self.image, (self.image.get_width()//4, self.image.get_height()//4))
+        ship_path = "enemy1" if self.health == 1 else "enemy2"
+        self.animation = self.game.assets[ship_path + "/idle"].copy()
+        self.image = self.animation.get_img()
         self.rect = self.image.get_rect(center = pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
@@ -29,6 +29,9 @@ class Enemy(pg.sprite.Sprite):
             self.game.score += 50 * self.score_factor
 
     def update(self, dt):
+        self.animation.update(dt)
+        self.image = self.animation.get_img()
+
         self.direction.y = 1
         self.pos.y += self.direction.y * self.speed * dt
         self.rect.x = self.pos.x
