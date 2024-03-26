@@ -1,6 +1,5 @@
 import settings as stgs
-from utils import load_image
-from projectile import Projectile
+from projectile import PlayerProjectile
 
 import pygame as pg
 
@@ -62,6 +61,6 @@ class Spaceship(pg.sprite.Sprite):
     def auto_fire(self, dt):
         self.shoot_timer += dt
         if self.shoot_timer > max(0.2, self.fire_rate):
-            Projectile(self.projectile_group, (self.pos.x + 9, self.pos.y - 10), -1)
-            Projectile(self.projectile_group, (self.pos.x + 27, self.pos.y - 10), -1)
+            PlayerProjectile(self.game, "laser", self.projectile_group, (self.pos.x + 9, self.pos.y - 10))
+            PlayerProjectile(self.game, "laser", self.projectile_group, (self.pos.x + 27, self.pos.y - 10))
             self.shoot_timer = 0

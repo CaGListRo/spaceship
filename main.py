@@ -26,6 +26,7 @@ class Game:
             "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=1),
             "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=1),
             "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=1),
+            "laser": load_images("ammo\lasers", scale_factor=0.5),
         }
 
         # Create player and add to groups

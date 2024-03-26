@@ -1,6 +1,5 @@
 import settings as stgs
-from utils import load_image
-from projectile import Projectile
+from projectile import EnemyProjectile
 
 import pygame as pg
 from random import randint
@@ -47,4 +46,4 @@ class Enemy(pg.sprite.Sprite):
         if self.shooting_timer <= 0:
             self.shooting_timer = 1
             if randint(1, 100) > 80:
-                Projectile(self.projectile_group, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10), 1)
+                EnemyProjectile(self.game, "laser", self.projectile_group, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10))
