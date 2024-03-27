@@ -8,11 +8,12 @@ class Spaceship(pg.sprite.Sprite):
     def __init__(self, game, player_group, projectile_group, pos):
         super().__init__(player_group)
         self.game = game
-        self.projectile_group = projectile_group
+        self.player_projectile_group = projectile_group
         self.state = "idle"
         self.animation = self.game.assets["ship/" + self.state].copy()
         self.image = self.animation.get_img()
         self.rect = self.image.get_rect(center = pos)
+        self.spaceship_mask = pg.mask.from_surface(self.image)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
         self.flip_image = False
@@ -26,6 +27,9 @@ class Spaceship(pg.sprite.Sprite):
         if self.health <= 0:
             self.kill()
     
+    def create_mask(self):
+        self.spaceship_mask = pg.mask.from_surface(self.image)
+
     def handle_animation(self, dt, move_x):
         old_state = self.state
         if (move_x[1] - move_x[0]) == 0:
@@ -35,6 +39,7 @@ class Spaceship(pg.sprite.Sprite):
         if old_state != self.state:
             self.animation = self.game.assets["ship/" + self.state].copy()
             self.rect = self.image.get_rect(center = self.pos)
+            self.create_mask()
 
         self.flip_image = True if (move_x[1] - move_x[0]) > 0 else False
         self.auto_fire(dt)
@@ -61,6 +66,6 @@ class Spaceship(pg.sprite.Sprite):
     def auto_fire(self, dt):
         self.shoot_timer += dt
         if self.shoot_timer > max(0.2, self.fire_rate):
-            PlayerProjectile(self.game, "laser", self.projectile_group, (self.pos.x + 9, self.pos.y - 10))
-            PlayerProjectile(self.game, "laser", self.projectile_group, (self.pos.x + 27, self.pos.y - 10))
+            PlayerProjectile(self.game, "laser", self.player_projectile_group, (self.pos.x + 16, self.pos.y + 23))
+            PlayerProjectile(self.game, "laser", self.player_projectile_group, (self.pos.x + 56, self.pos.y + 23))
             self.shoot_timer = 0

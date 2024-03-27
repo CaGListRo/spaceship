@@ -15,23 +15,25 @@ class Game:
         self.game_window = pg.Surface(stgs.GAME_WINDOW_RESOLUTION)
 
         self.player_group = pg.sprite.Group()
+        self.player_projectile_group = pg.sprite.Group()
         self.enemy_group = pg.sprite.Group()
-        self.projectile_group = pg.sprite.Group()
+        self.enemy_projectile_group = pg.sprite.Group()
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
-            "ship/idle": Animation(load_images("Ship/idle", scale_factor=0.25), animation_duration=1),
-            "ship/curve": Animation(load_images("Ship/curve", scale_factor=0.25), animation_duration=1),
-            "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=1),
-            "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=1),
-            "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=1),
-            "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=1),
-            "laser": load_images("ammo\lasers", scale_factor=0.5),
+            "ship/idle": Animation(load_images("Ship/idle", scale_factor=0.25), animation_duration=0.5),
+            "ship/curve": Animation(load_images("Ship/curve", scale_factor=0.25), animation_duration=0.5),
+            "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=0.5),
+            "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=0.5),
+            "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5),
+            "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=0.5),
+            "laser": load_images("ammo/lasers", scale_factor=0.5),
+            "rocket": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=1),
         }
 
         # Create player and add to groups
         self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
-        self.spaceship = Spaceship(self, self.player_group, self.projectile_group, self.player_pos)
+        self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
 
         self.score_font = pg.font.SysFont("comicsans", 42)
@@ -42,16 +44,16 @@ class Game:
         self.wave = 0
 
     def handle_projectile_player_collision(self):
-        for projectile in self.projectile_group:
-            overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False)
+        for projectile in self.enemy_projectile_group:
+            overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
                     sprite.take_damage()
                     projectile.kill()
 
     def handle_projectile_enemy_collision(self):
-        for projectile in self.projectile_group:
-            overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False)
+        for projectile in self.player_projectile_group:
+            overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
                     sprite.take_damage()
@@ -61,7 +63,7 @@ class Game:
     def handle_enemies(self):
         if self.wave != 20:
             if len(self.enemy_group) < 2:
-                enemy_creator(self, self.enemy_group, self.projectile_group, self.phase, self.wave)
+                enemy_creator(self, self.enemy_group, self.enemy_projectile_group, self.phase, self.wave)
                 self.wave += 1
 
     def handle_events(self):
@@ -91,8 +93,9 @@ class Game:
 
     def update_groups(self, dt):
         self.player_group.update(dt, self.move_x, self.move_y)
-        self.projectile_group.update(dt)
+        self.player_projectile_group.update(dt)
         self.enemy_group.update(dt)
+        self.enemy_projectile_group.update(dt)
 
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
@@ -104,7 +107,8 @@ class Game:
 
         self.draw_score()
         self.enemy_group.draw(self.game_window)
-        self.projectile_group.draw(self.game_window)
+        self.enemy_projectile_group.draw(self.game_window)
+        self.player_projectile_group.draw(self.game_window)
         self.player_group.draw(self.game_window)
 
         pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))

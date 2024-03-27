@@ -11,11 +11,12 @@ class Enemy(pg.sprite.Sprite):
         self.game = game
         self.health = int(health)
         self.score_factor = int(health)
-        self.projectile_group = projectile_group
+        self.enemy_projectile_group = projectile_group
         ship_path = "enemy1" if self.health == 1 else "enemy2"
         self.animation = self.game.assets[ship_path + "/idle"].copy()
         self.image = self.animation.get_img()
         self.rect = self.image.get_rect(center = pos)
+        self.enemy_mask = pg.mask.from_surface(self.image)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
         self.speed = 100
@@ -26,6 +27,9 @@ class Enemy(pg.sprite.Sprite):
         if self.health <= 0:
             self.kill()
             self.game.score += 50 * self.score_factor
+
+    def create_mask(self):
+        self.enemy_mask = pg.mask.from_surface(self.image)
 
     def update(self, dt):
         self.animation.update(dt)
@@ -46,4 +50,4 @@ class Enemy(pg.sprite.Sprite):
         if self.shooting_timer <= 0:
             self.shooting_timer = 1
             if randint(1, 100) > 80:
-                EnemyProjectile(self.game, "laser", self.projectile_group, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10))
+                EnemyProjectile(self.game, "laser", self.enemy_projectile_group, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10))
