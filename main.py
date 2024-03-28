@@ -27,10 +27,11 @@ class Game:
             "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=0.5),
             "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5),
             "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=0.5),
+            "enemy3/idle": Animation(load_images("enemies/ship3/idle", scale_factor=0.25), animation_duration=0.5),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
-            "rocket": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=1),
+            "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2),
         }
-
+        
         # Create player and add to groups
         self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
         self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
@@ -40,7 +41,7 @@ class Game:
 
         self.run = True
         self.score = 0
-        self.phase = 1
+        self.phase = 3
         self.wave = 0
 
     def handle_projectile_player_collision(self):

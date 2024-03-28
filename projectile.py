@@ -4,17 +4,42 @@ import pygame as pg
 
 
 class Projectile(pg.sprite.Sprite):
-    def __init__(self, game, p_type, group, pos, direction):
+    def __init__(self, game, projectile_type, group, pos, direction, laser_color=None):
         super().__init__(group)
-        image_count = 3 if direction > 0 else 1
-        # self.game = game
-        self.image = game.assets[p_type][image_count]
+        self.game = game
+        color = self.color_picker(laser_color)
+        self.animate = self.get_image(projectile_type, color)
         self.rect = self.image.get_rect(center=pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = direction
-        self.speed = 150 if direction > 0 else 250
+        self.speed = 150
+
+    def get_image(self, type, color):
+        if type == "laser":
+            self.image = self.game.assets[type][color]
+            return False
+        elif type == "rocket1":
+            self.animation = self.game.assets[type].copy()
+            self.image = self.animation.get_img()
+            self.image = pg.transform.scale(self.image, (self.image.get_width() // 2, self.image.get_height() // 2))
+            return True
+
+    def color_picker(self, color):
+        if color == "blue":
+            return 0
+        elif color == "green":
+            return 1
+        elif color == "orange":
+            return 2
+        elif color == "red":
+            return 3
+        else:
+            return 4    
 
     def update(self, dt):
+        if self.animate:
+            self.animation.update(dt)
+            self.image = self.animation.get_img()
         self.pos.y += self.direction * self.speed * dt
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
@@ -24,10 +49,11 @@ class Projectile(pg.sprite.Sprite):
 
 
 class PlayerProjectile(Projectile):
-    def __init__(self, game, p_type, group, pos):
-        super().__init__(game, p_type, group, pos, direction=-1)
+    def __init__(self, game, projectile_type, group, pos):
+        super().__init__(game, projectile_type, group, pos, direction=-1, laser_color="blue")
+        
 
 
 class EnemyProjectile(Projectile):
-    def __init__(self, game, p_type, group, pos):
-        super().__init__(game, p_type, group, pos, direction=1)
+    def __init__(self, game, projectile_type, group, pos, laser_color):
+        super().__init__(game, projectile_type, group, pos, direction=1, laser_color=laser_color)

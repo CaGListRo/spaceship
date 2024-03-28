@@ -31,7 +31,7 @@ class Animation:
         if self.img_timer >= self.img_duration:
             self.current_frame += 1
             self.img_timer = 0
-            if self.current_frame > len(self.img_list)-1:
+            if self.current_frame >= len(self.img_list):
                 self.current_frame = 0
 
     def get_img(self):
