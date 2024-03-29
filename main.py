@@ -18,6 +18,7 @@ class Game:
         self.player_projectile_group = pg.sprite.Group()
         self.enemy_group = pg.sprite.Group()
         self.enemy_projectile_group = pg.sprite.Group()
+        self.upgrade_group = pg.sprite.Group()
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
@@ -30,6 +31,8 @@ class Game:
             "enemy3/idle": Animation(load_images("enemies/ship3/idle", scale_factor=0.25), animation_duration=0.5),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
             "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2),
+            "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
+            "upgrade/image": load_images("upgrades/images", scale_factor=0.5),
         }
         
         # Create player and add to groups
@@ -39,9 +42,12 @@ class Game:
 
         self.score_font = pg.font.SysFont("comicsans", 42)
 
+        self.background_start_y = -2000
+        self.background_y = self.background_start_y
+
         self.run = True
         self.score = 0
-        self.phase = 3
+        self.phase = 1
         self.wave = 0
 
     def handle_projectile_player_collision(self):
@@ -49,7 +55,7 @@ class Game:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
-                    sprite.take_damage()
+                    sprite.take_damage(projectile.damage)
                     projectile.kill()
 
     def handle_projectile_enemy_collision(self):
@@ -57,14 +63,14 @@ class Game:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
-                    sprite.take_damage()
+                    sprite.take_damage(projectile.damage)
                     projectile.kill()
                     self.score += 10
 
     def handle_enemies(self):
         if self.wave != 20:
             if len(self.enemy_group) < 2:
-                enemy_creator(self, self.enemy_group, self.enemy_projectile_group, self.phase, self.wave)
+                enemy_creator(self, self.enemy_group, self.enemy_projectile_group, self.upgrade_group, self.phase, self.wave)
                 self.wave += 1
 
     def handle_events(self):
@@ -97,16 +103,25 @@ class Game:
         self.player_projectile_group.update(dt)
         self.enemy_group.update(dt)
         self.enemy_projectile_group.update(dt)
+        self.upgrade_group.update(dt)
 
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
         self.main_window.blit(score_to_blit, (8, 8))
+        health_to_blit = self.score_font.render(str(self.spaceship.health), True, (247, 0, 0))
+        self.main_window.blit(health_to_blit, (8, 200))
+
+    def move_background(self, dt):
+        self.background_y += dt * 10
+        self.background_y = min(0, self.background_y)
+
 
     def draw_window(self):
         self.main_window.fill('blue')
-        self.game_window.blit(self.assets["background"], (0, -2000))
+        self.game_window.blit(self.assets["background"], (0, self.background_y))
 
         self.draw_score()
+        self.upgrade_group.draw(self.game_window)
         self.enemy_group.draw(self.game_window)
         self.enemy_projectile_group.draw(self.game_window)
         self.player_projectile_group.draw(self.game_window)
@@ -128,6 +143,8 @@ class Game:
             self.update_groups(dt)
             self.handle_projectile_enemy_collision()
             self.handle_projectile_player_collision()
+
+            self.move_background(dt)
 
             self.draw_window()
 

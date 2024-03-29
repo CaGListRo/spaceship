@@ -4,15 +4,16 @@ import pygame as pg
 
 
 class Projectile(pg.sprite.Sprite):
-    def __init__(self, game, projectile_type, group, pos, direction, laser_color=None):
+    def __init__(self, game, projectile_type, damage, group, pos, direction, laser_color=None):
         super().__init__(group)
         self.game = game
+        self.damage = damage
         color = self.color_picker(laser_color)
         self.animate = self.get_image(projectile_type, color)
         self.rect = self.image.get_rect(center=pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = direction
-        self.speed = 150
+        
 
     def get_image(self, type, color):
         if type == "laser":
@@ -49,11 +50,13 @@ class Projectile(pg.sprite.Sprite):
 
 
 class PlayerProjectile(Projectile):
-    def __init__(self, game, projectile_type, group, pos):
-        super().__init__(game, projectile_type, group, pos, direction=-1, laser_color="blue")
+    def __init__(self, game, projectile_type, damage, group, pos):
+        super().__init__(game, projectile_type, damage, group, pos, direction=-1, laser_color="blue")
+        self.speed = 250
         
 
 
 class EnemyProjectile(Projectile):
-    def __init__(self, game, projectile_type, group, pos, laser_color):
-        super().__init__(game, projectile_type, group, pos, direction=1, laser_color=laser_color)
+    def __init__(self, game, projectile_type, damage, group, pos, laser_color):
+        super().__init__(game, projectile_type, damage, group, pos, direction=1, laser_color=laser_color)
+        self.speed = 150

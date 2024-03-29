@@ -20,10 +20,13 @@ class Spaceship(pg.sprite.Sprite):
         self.shoot_timer = 0
         self.fire_rate = 0.5
         self.speed = 200
-        self.health = 10
+        self.health = 100
+        self.laser_damage = 10
+        self.rocket_damage = 50
+        self.current_weapon_damage = self.laser_damage
 
-    def take_damage(self):
-        self.health -= 1
+    def take_damage(self, damage):
+        self.health -= damage
         if self.health <= 0:
             self.kill()
     
@@ -65,7 +68,7 @@ class Spaceship(pg.sprite.Sprite):
 
     def auto_fire(self, dt):
         self.shoot_timer += dt
-        if self.shoot_timer > max(0.2, self.fire_rate):
-            PlayerProjectile(self.game, "laser", self.player_projectile_group, (self.pos.x + 16, self.pos.y + 23))
-            PlayerProjectile(self.game, "laser", self.player_projectile_group, (self.pos.x + 56, self.pos.y + 23))
+        if self.shoot_timer > max(0.1, self.fire_rate):
+            PlayerProjectile(self.game, "laser", self.current_weapon_damage, self.player_projectile_group, (self.pos.x + 16, self.pos.y + 23))
+            PlayerProjectile(self.game, "laser", self.current_weapon_damage, self.player_projectile_group, (self.pos.x + 56, self.pos.y + 23))
             self.shoot_timer = 0
