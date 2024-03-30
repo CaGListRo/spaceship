@@ -16,9 +16,11 @@ def load_images(path, scale_factor):
 
 
 class Animation:
-    def __init__(self, image_list, animation_duration):
-        self.img_list = image_list
+    def __init__(self, image_list, animation_duration, loop=True):
+        self.img_list = list(image_list)
         self.anim_dur = animation_duration
+        self.loop = loop
+        self.done = False
         self.current_frame = 0
         self.img_duration = animation_duration / len(image_list)
         self.img_timer = 0
@@ -28,11 +30,15 @@ class Animation:
 
     def update(self, dt):
         self.img_timer += dt
-        if self.img_timer >= self.img_duration:
+        if self.img_timer >= self.img_duration and not self.done:
             self.current_frame += 1
             self.img_timer = 0
             if self.current_frame >= len(self.img_list):
-                self.current_frame = 0
+                if self.loop:
+                    self.current_frame = 0
+                else:
+                    print("done")
+                    self.done = True
 
     def get_img(self):
         return self.img_list[self.current_frame]

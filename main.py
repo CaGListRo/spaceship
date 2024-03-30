@@ -19,20 +19,22 @@ class Game:
         self.enemy_group = pg.sprite.Group()
         self.enemy_projectile_group = pg.sprite.Group()
         self.upgrade_group = pg.sprite.Group()
+        self.fx_group = pg.sprite.Group()
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
-            "ship/idle": Animation(load_images("Ship/idle", scale_factor=0.25), animation_duration=0.5),
-            "ship/curve": Animation(load_images("Ship/curve", scale_factor=0.25), animation_duration=0.5),
-            "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=0.5),
+            "ship/idle": Animation(load_images("Ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "ship/curve": Animation(load_images("Ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=0.5),
-            "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5),
+            "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=0.5),
-            "enemy3/idle": Animation(load_images("enemies/ship3/idle", scale_factor=0.25), animation_duration=0.5),
+            "enemy3/idle": Animation(load_images("enemies/ship3/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
-            "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2),
+            "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2, loop=True),
             "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
             "upgrade/image": load_images("upgrades/images", scale_factor=0.5),
+            "explosion": Animation(load_images("explosion", scale_factor=0.5), animation_duration=1, loop=False)
         }
         
         # Create player and add to groups
@@ -45,10 +47,45 @@ class Game:
         self.background_start_y = -2000
         self.background_y = self.background_start_y
 
+        self.lives = 3
         self.run = True
         self.score = 0
         self.phase = 1
         self.wave = 0
+        self.explosion_timer = 0
+
+    def handle_upgrade_collision(self):
+        for upgrade in self.upgrade_group:
+            overlap_sprites = pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask)
+            if overlap_sprites:
+                for sprite in overlap_sprites:
+                    if upgrade.upgrade_number == 0:
+                        pass  # drone/s
+                    elif upgrade.upgrade_number == 1:
+                        self.lives += 1
+                    elif upgrade.upgrade_number == 2:
+                        self.spaceship.laser_damage -= 1
+                        self.spaceship.rocket_damage -= 5
+                    elif upgrade.upgrade_number == 3:
+                        self.spaceship.laser_damage += 1
+                        self.spaceship.rocket_damage += 5
+                    elif upgrade.upgrade_number == 4:
+                        self.spaceship.laser_fire_rate += 0.05
+                    elif upgrade.upgrade_number == 5:
+                        self.spaceship.rocket_fire_rate -= 0.05
+                    elif upgrade.upgrade_number == 6:
+                        self.spaceship.health = 100
+                    elif upgrade.upgrade_number == 7:
+                        self.spaceship.health = min(self.spaceship.health + 25, 100)
+                    elif upgrade.upgrade_number == 8:
+                        pass  # parallel fire
+                    elif upgrade.upgrade_number == 9:
+                        pass  # rockets
+                    elif upgrade.upgrade_number == 10:
+                        pass  # spray
+
+                    upgrade.kill()
+
 
     def handle_projectile_player_collision(self):
         for projectile in self.enemy_projectile_group:
@@ -70,7 +107,7 @@ class Game:
     def handle_enemies(self):
         if self.wave != 20:
             if len(self.enemy_group) < 2:
-                enemy_creator(self, self.enemy_group, self.enemy_projectile_group, self.upgrade_group, self.phase, self.wave)
+                enemy_creator(self, self.enemy_group, self.phase, self.wave)
                 self.wave += 1
 
     def handle_events(self):
@@ -98,12 +135,18 @@ class Game:
                 if event.key == pg.K_RIGHT:
                     self.move_x[1] = 0
 
-    def update_groups(self, dt):
+    def update_groups(self, dt):  
         self.player_group.update(dt, self.move_x, self.move_y)
         self.player_projectile_group.update(dt)
         self.enemy_group.update(dt)
         self.enemy_projectile_group.update(dt)
+        self.fx_group.update(dt)
         self.upgrade_group.update(dt)
+        for explosion in self.fx_group:
+            self.explosion_timer += dt
+            if explosion and self.explosion_timer > 1:
+                self.fx_group.remove(explosion)
+                self.explosion_timer = 0
 
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
@@ -115,7 +158,6 @@ class Game:
         self.background_y += dt * 10
         self.background_y = min(0, self.background_y)
 
-
     def draw_window(self):
         self.main_window.fill('blue')
         self.game_window.blit(self.assets["background"], (0, self.background_y))
@@ -124,6 +166,7 @@ class Game:
         self.upgrade_group.draw(self.game_window)
         self.enemy_group.draw(self.game_window)
         self.enemy_projectile_group.draw(self.game_window)
+        self.fx_group.draw(self.game_window)
         self.player_projectile_group.draw(self.game_window)
         self.player_group.draw(self.game_window)
 
@@ -141,6 +184,7 @@ class Game:
             self.handle_enemies()
 
             self.update_groups(dt)
+            self.handle_upgrade_collision()
             self.handle_projectile_enemy_collision()
             self.handle_projectile_player_collision()
 

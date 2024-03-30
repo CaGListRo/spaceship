@@ -18,9 +18,13 @@ class Spaceship(pg.sprite.Sprite):
         self.direction = pg.math.Vector2()
         self.flip_image = False
         self.shoot_timer = 0
-        self.fire_rate = 0.5
+        
         self.speed = 200
         self.health = 100
+
+        self.weapon = "laser"
+        self.laser_fire_rate = 0.5
+        self.rocket_fire_rate = 1
         self.laser_damage = 10
         self.rocket_damage = 50
         self.current_weapon_damage = self.laser_damage
@@ -68,7 +72,8 @@ class Spaceship(pg.sprite.Sprite):
 
     def auto_fire(self, dt):
         self.shoot_timer += dt
-        if self.shoot_timer > max(0.1, self.fire_rate):
-            PlayerProjectile(self.game, "laser", self.current_weapon_damage, self.player_projectile_group, (self.pos.x + 16, self.pos.y + 23))
-            PlayerProjectile(self.game, "laser", self.current_weapon_damage, self.player_projectile_group, (self.pos.x + 56, self.pos.y + 23))
-            self.shoot_timer = 0
+        if self.weapon == "laser":
+            if self.shoot_timer > max(0.1, self.laser_fire_rate):
+                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 16, self.pos.y + 23))
+                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 56, self.pos.y + 23))
+                self.shoot_timer = 0

@@ -50,13 +50,13 @@ class Projectile(pg.sprite.Sprite):
 
 
 class PlayerProjectile(Projectile):
-    def __init__(self, game, projectile_type, damage, group, pos):
-        super().__init__(game, projectile_type, damage, group, pos, direction=-1, laser_color="blue")
+    def __init__(self, game, projectile_type, damage, pos):
+        super().__init__(game, projectile_type, damage, game.player_projectile_group, pos, direction=-1, laser_color="blue")
         self.speed = 250
         
 
 
 class EnemyProjectile(Projectile):
-    def __init__(self, game, projectile_type, damage, group, pos, laser_color):
-        super().__init__(game, projectile_type, damage, group, pos, direction=1, laser_color=laser_color)
+    def __init__(self, game, projectile_type, damage, pos, laser_color):
+        super().__init__(game, projectile_type, damage, game.enemy_projectile_group, pos, direction=1, laser_color=laser_color)
         self.speed = 150
