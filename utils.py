@@ -26,7 +26,7 @@ class Animation:
         self.img_timer = 0
 
     def copy(self):
-        return Animation(self.img_list, self.anim_dur)
+        return Animation(self.img_list, self.anim_dur, self.loop)
 
     def update(self, dt):
         self.img_timer += dt
@@ -41,4 +41,7 @@ class Animation:
                     self.done = True
 
     def get_img(self):
-        return self.img_list[self.current_frame]
+        if 0 <= self.current_frame < len(self.img_list):
+            return self.img_list[self.current_frame]
+        else:
+            return None

@@ -1,5 +1,7 @@
 import settings as stgs
 from spaceship import Spaceship
+from upgrades import Upgrade
+from explosion import ShipExplosion, SmallExplosion
 from enemy_creator import enemy_creator
 from utils import load_image, load_images, Animation
 
@@ -19,7 +21,7 @@ class Game:
         self.enemy_group = pg.sprite.Group()
         self.enemy_projectile_group = pg.sprite.Group()
         self.upgrade_group = pg.sprite.Group()
-        self.fx_group = pg.sprite.Group()
+        self.fx_list = []
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
@@ -34,7 +36,8 @@ class Game:
             "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2, loop=True),
             "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
             "upgrade/image": load_images("upgrades/images", scale_factor=0.5),
-            "explosion": Animation(load_images("explosion", scale_factor=0.5), animation_duration=1, loop=False)
+            "explosion": Animation(load_images("fx/ship explosion", scale_factor=0.5), animation_duration=1, loop=False),
+            "projectile_hit": Animation(load_images("fx/small explosion", scale_factor=0.5), animation_duration=0.5, loop=False),
         }
         
         # Create player and add to groups
@@ -52,40 +55,36 @@ class Game:
         self.score = 0
         self.phase = 1
         self.wave = 0
-        self.explosion_timer = 0
 
     def handle_upgrade_collision(self):
         for upgrade in self.upgrade_group:
-            overlap_sprites = pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask)
-            if overlap_sprites:
-                for sprite in overlap_sprites:
-                    if upgrade.upgrade_number == 0:
-                        pass  # drone/s
-                    elif upgrade.upgrade_number == 1:
-                        self.lives += 1
-                    elif upgrade.upgrade_number == 2:
-                        self.spaceship.laser_damage -= 1
-                        self.spaceship.rocket_damage -= 5
-                    elif upgrade.upgrade_number == 3:
-                        self.spaceship.laser_damage += 1
-                        self.spaceship.rocket_damage += 5
-                    elif upgrade.upgrade_number == 4:
-                        self.spaceship.laser_fire_rate += 0.05
-                    elif upgrade.upgrade_number == 5:
-                        self.spaceship.rocket_fire_rate -= 0.05
-                    elif upgrade.upgrade_number == 6:
-                        self.spaceship.health = 100
-                    elif upgrade.upgrade_number == 7:
-                        self.spaceship.health = min(self.spaceship.health + 25, 100)
-                    elif upgrade.upgrade_number == 8:
-                        pass  # parallel fire
-                    elif upgrade.upgrade_number == 9:
-                        pass  # rockets
-                    elif upgrade.upgrade_number == 10:
-                        pass  # spray
+            if pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask):
+                if upgrade.upgrade_number == 0:
+                    pass  # drone/s
+                elif upgrade.upgrade_number == 1:
+                    self.lives += 1
+                elif upgrade.upgrade_number == 2:
+                    self.spaceship.laser_damage -= 1
+                    self.spaceship.rocket_damage -= 5
+                elif upgrade.upgrade_number == 3:
+                    self.spaceship.laser_damage += 1
+                    self.spaceship.rocket_damage += 5
+                elif upgrade.upgrade_number == 4:
+                    self.spaceship.laser_fire_rate += 0.05
+                elif upgrade.upgrade_number == 5:
+                    self.spaceship.rocket_fire_rate -= 0.05
+                elif upgrade.upgrade_number == 6:
+                    self.spaceship.health = 100
+                elif upgrade.upgrade_number == 7:
+                    self.spaceship.health = min(self.spaceship.health + 25, 100)
+                elif upgrade.upgrade_number == 8:
+                    pass  # parallel fire
+                elif upgrade.upgrade_number == 9:
+                    pass  # rockets
+                elif upgrade.upgrade_number == 10:
+                    pass  # spray
 
-                    upgrade.kill()
-
+                upgrade.kill()
 
     def handle_projectile_player_collision(self):
         for projectile in self.enemy_projectile_group:
@@ -100,7 +99,12 @@ class Game:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
-                    sprite.take_damage(projectile.damage)
+                    killed = sprite.take_damage(projectile.damage)
+                    self.fx_list.append(SmallExplosion(self, (projectile.pos.x, projectile.pos.y)))
+                    # print(self.fx_list)
+                    if killed:
+                        Upgrade(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() // 2))
+                        self.fx_list.append(ShipExplosion(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() + 20)))
                     projectile.kill()
                     self.score += 10
 
@@ -140,13 +144,13 @@ class Game:
         self.player_projectile_group.update(dt)
         self.enemy_group.update(dt)
         self.enemy_projectile_group.update(dt)
-        self.fx_group.update(dt)
         self.upgrade_group.update(dt)
-        for explosion in self.fx_group:
-            self.explosion_timer += dt
-            if explosion and self.explosion_timer > 1:
-                self.fx_group.remove(explosion)
-                self.explosion_timer = 0
+
+        for projectile_hit in self.fx_list:
+            remove_hit = projectile_hit.update(dt)
+            if remove_hit:
+                print("remove")
+                self.fx_list.remove(projectile_hit)
 
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
@@ -166,9 +170,10 @@ class Game:
         self.upgrade_group.draw(self.game_window)
         self.enemy_group.draw(self.game_window)
         self.enemy_projectile_group.draw(self.game_window)
-        self.fx_group.draw(self.game_window)
         self.player_projectile_group.draw(self.game_window)
         self.player_group.draw(self.game_window)
+        for effect in self.fx_list:
+            effect.draw(self.game_window)
 
         pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
         self.main_window.blit(self.game_window, (195, 95))

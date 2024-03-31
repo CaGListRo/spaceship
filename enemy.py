@@ -1,7 +1,5 @@
 import settings as stgs
 from projectile import EnemyProjectile
-from upgrades import Upgrade
-from explosion import Explosion
 
 import pygame as pg
 from random import randint
@@ -22,14 +20,15 @@ class Enemy(pg.sprite.Sprite):
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2(0, 1)
         self.speed = 100
+        self.killed = False
 
     def take_damage(self, damage):
         self.health -= damage
         if self.health <= 0:
             self.kill()
-            Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-            Explosion(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 20))
+            self.killed = True
             self.game.score += 50 * self.score_factor
+        return self.killed
 
     def create_mask(self):
         self.enemy_mask = pg.mask.from_surface(self.image)
