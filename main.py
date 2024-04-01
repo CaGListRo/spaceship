@@ -2,6 +2,7 @@ import settings as stgs
 from spaceship import Spaceship
 from upgrades import Upgrade
 from explosion import ShipExplosion, SmallExplosion
+from drone import Drone
 from enemy_creator import enemy_creator
 from utils import load_image, load_images, Animation
 
@@ -25,8 +26,16 @@ class Game:
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
-            "ship/idle": Animation(load_images("Ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
-            "ship/curve": Animation(load_images("Ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "ship/idle": Animation(load_images("ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "ship/curve": Animation(load_images("ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "laser/idle": load_image("ship/weapons", "laser idle.png", 0.25),
+            "laser/curve": load_image("ship/weapons", "laser curve.png", 0.25),
+            "rocket_launcher/idle": load_image("ship/weapons", "rocketlauncher idle.png", 0.25),
+            "rocket_launcher/curve": load_image("ship/weapons", "rocketlauncher curve.png", 0.25),
+            "sprayer/idle": load_image("ship/weapons", "sprayer idle.png", 0.25),
+            "sprayer/curve": load_image("ship/weapons", "sprayer curve.png", 0.25),
+            "drone/idle": Animation(load_images("drone/idle", scale_factor=0.3), animation_duration=0.5, loop=True),
+            "drone/curve": Animation(load_images("drone/curve", scale_factor=0.3), animation_duration=0.5, loop=True),
             "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=0.5),
             "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
@@ -51,16 +60,29 @@ class Game:
         self.background_y = self.background_start_y
 
         self.lives = 3
+        self.drones = [0, 0]
+        self.drones_to_get = 0
+        self.drones_max = 2
         self.run = True
         self.score = 0
         self.phase = 1
         self.wave = 0
 
+    def add_drones(self):
+        for i, _ in enumerate(self.drones):
+            if self.drones[i] == 0 and self.drones_to_get > 0:
+                self.drones[i] = 1
+                self.drones_to_get -= 1
+                side_picker = -1 if i == 0 else 1
+                Drone(self, self.player_group, self.player_projectile_group, (self.spaceship.pos.x + (self.spaceship.image.get_width() * side_picker), self.spaceship.pos.y))
+
     def handle_upgrade_collision(self):
         for upgrade in self.upgrade_group:
             if pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask):
                 if upgrade.upgrade_number == 0:
-                    pass  # drone/s
+                    self.drones_to_get = min(self.drones_to_get + 1, self.drones_max)  # drone/s
+                    if sum(self.drones) < 2:
+                        self.add_drones()
                 elif upgrade.upgrade_number == 1:
                     self.lives += 1
                 elif upgrade.upgrade_number == 2:
@@ -78,11 +100,14 @@ class Game:
                 elif upgrade.upgrade_number == 7:
                     self.spaceship.health = min(self.spaceship.health + 25, 100)
                 elif upgrade.upgrade_number == 8:
-                    pass  # parallel fire
+                    self.spaceship.weapon = "laser"  # parallel fire
+                    self.spaceship.current_weapon_damage = self.spaceship.laser_damage
                 elif upgrade.upgrade_number == 9:
-                    pass  # rockets
+                    self.spaceship.weapon = "rocket_launcher"  # rockets
+                    self.spaceship.current_weapon_damage = self.spaceship.rocket_damage
                 elif upgrade.upgrade_number == 10:
-                    pass  # spray
+                    self.spaceship.weapon = "sprayer"  # spray
+                    self.spaceship.current_weapon_damage = self.spaceship.laser_damage
 
                 upgrade.kill()
 
@@ -101,7 +126,6 @@ class Game:
                 for sprite in overlap_sprites:
                     killed = sprite.take_damage(projectile.damage)
                     self.fx_list.append(SmallExplosion(self, (projectile.pos.x, projectile.pos.y)))
-                    # print(self.fx_list)
                     if killed:
                         Upgrade(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() // 2))
                         self.fx_list.append(ShipExplosion(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() + 20)))
@@ -149,7 +173,6 @@ class Game:
         for projectile_hit in self.fx_list:
             remove_hit = projectile_hit.update(dt)
             if remove_hit:
-                print("remove")
                 self.fx_list.remove(projectile_hit)
 
     def draw_score(self):

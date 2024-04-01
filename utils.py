@@ -37,7 +37,6 @@ class Animation:
                 if self.loop:
                     self.current_frame = 0
                 else:
-                    print("done")
                     self.done = True
 
     def get_img(self):

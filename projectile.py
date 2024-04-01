@@ -54,6 +54,11 @@ class PlayerProjectile(Projectile):
         super().__init__(game, projectile_type, damage, game.player_projectile_group, pos, direction=-1, laser_color="blue")
         self.speed = 250
         
+    def get_image(self, type, color):
+        super().get_image(type, color)
+
+        if type == "rocket1":
+            self.image = pg.transform.rotate(self.image, 180)
 
 
 class EnemyProjectile(Projectile):

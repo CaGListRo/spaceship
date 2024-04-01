@@ -43,7 +43,6 @@ class SmallExplosion:
 
         self.animation.update(dt)
         self.image = self.animation.get_img()
-        print(self.remove_hit)
 
         return self.remove_hit
     
