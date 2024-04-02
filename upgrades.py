@@ -8,7 +8,7 @@ class Upgrade(pg.sprite.Sprite):
     def __init__(self, game, pos):
         super().__init__(game.upgrade_group)
         background_number = randint(0, 6)
-        self.upgrade_number = 0 #randint(0, 10)
+        self.upgrade_number = randint(0, 10)
         self.image = pg.Surface((50, 50))  # depends on the scale factor
         self.image.set_colorkey("black")
         self.image.blit(game.assets["upgrade/background"][background_number], (0, 0))

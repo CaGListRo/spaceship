@@ -67,21 +67,22 @@ class Game:
         self.score = 0
         self.phase = 1
         self.wave = 0
+        self.sprayer_state = 0
 
     def add_drones(self):
         for i, _ in enumerate(self.drones):
             if self.drones[i] == 0 and self.drones_to_get > 0:
-                self.drones[i] = 1
+                # self.drones[i] = 1
                 self.drones_to_get -= 1
                 side_picker = -1 if i == 0 else 1
-                Drone(self, self.player_group, self.player_projectile_group, (self.spaceship.pos.x + (self.spaceship.image.get_width() * side_picker), self.spaceship.pos.y))
+                self.drones[i] = Drone(self, self.player_group, self.player_projectile_group, side_picker)
 
     def handle_upgrade_collision(self):
         for upgrade in self.upgrade_group:
             if pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask):
                 if upgrade.upgrade_number == 0:
                     self.drones_to_get = min(self.drones_to_get + 1, self.drones_max)  # drone/s
-                    if sum(self.drones) < 2:
+                    if self.drones[0] == 0 or self.drones[1] == 0:
                         self.add_drones()
                 elif upgrade.upgrade_number == 1:
                     self.lives += 1
@@ -102,12 +103,15 @@ class Game:
                 elif upgrade.upgrade_number == 8:
                     self.spaceship.weapon = "laser"  # parallel fire
                     self.spaceship.current_weapon_damage = self.spaceship.laser_damage
+                    self.sprayer_state = 0
                 elif upgrade.upgrade_number == 9:
                     self.spaceship.weapon = "rocket_launcher"  # rockets
                     self.spaceship.current_weapon_damage = self.spaceship.rocket_damage
+                    self.sprayer_state = 0
                 elif upgrade.upgrade_number == 10:
                     self.spaceship.weapon = "sprayer"  # spray
                     self.spaceship.current_weapon_damage = self.spaceship.laser_damage
+                    self.sprayer_state = 3 if self.sprayer_state == 0 else 5
 
                 upgrade.kill()
 

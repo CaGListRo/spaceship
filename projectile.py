@@ -1,14 +1,18 @@
 import settings as stgs
 
 import pygame as pg
+import math
 
 
 class Projectile(pg.sprite.Sprite):
-    def __init__(self, game, projectile_type, damage, group, pos, direction, laser_color=None):
+    def __init__(self, game, projectile_type, damage, group, pos, direction, laser_color=None, angle=90):
         super().__init__(group)
         self.game = game
         self.damage = damage
         color = self.color_picker(laser_color)
+        self.angle = angle
+        if self.angle != 90:
+            self.image_rotate_angle = self.angle - 90
         self.animate = self.get_image(projectile_type, color)
         self.rect = self.image.get_rect(center=pos)
         self.pos = pg.math.Vector2(self.rect.topleft)
@@ -18,6 +22,8 @@ class Projectile(pg.sprite.Sprite):
     def get_image(self, type, color):
         if type == "laser":
             self.image = self.game.assets[type][color]
+            if self.game.spaceship.weapon == "sprayer" and self.angle != 90:
+                self.image = pg.transform.rotate(self.image, -self.image_rotate_angle)
             return False
         elif type == "rocket1":
             self.animation = self.game.assets[type].copy()
@@ -38,10 +44,17 @@ class Projectile(pg.sprite.Sprite):
             return 4    
 
     def update(self, dt):
-        if self.animate:
-            self.animation.update(dt)
-            self.image = self.animation.get_img()
-        self.pos.y += self.direction * self.speed * dt
+        if self.angle == 90:
+            if self.animate:
+                self.animation.update(dt)
+                self.image = self.animation.get_img()
+            self.pos.y += self.direction * self.speed * dt
+        else:
+            x_move = self.speed * dt * math.cos(math.radians(self.angle))
+            y_move = self.speed * dt * math.sin(math.radians(self.angle))   
+            self.pos.x -= x_move
+            self.pos.y -= y_move
+
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
 
@@ -50,8 +63,8 @@ class Projectile(pg.sprite.Sprite):
 
 
 class PlayerProjectile(Projectile):
-    def __init__(self, game, projectile_type, damage, pos):
-        super().__init__(game, projectile_type, damage, game.player_projectile_group, pos, direction=-1, laser_color="blue")
+    def __init__(self, game, projectile_type, damage, pos, angle=90):
+        super().__init__(game, projectile_type, damage, game.player_projectile_group, pos, direction=-1, laser_color="blue", angle=angle)
         self.speed = 250
         
     def get_image(self, type, color):

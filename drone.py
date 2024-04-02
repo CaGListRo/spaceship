@@ -5,16 +5,19 @@ import pygame as pg
 
 
 class Drone(pg.sprite.Sprite):
-    def __init__(self, game, player_group, projectile_group, pos):
+    def __init__(self, game, player_group, projectile_group, side):
         super().__init__(player_group)
         self.game = game
         self.player_projectile_group = projectile_group
         self.state = "idle"
+        self.side = side
         self.animation = self.game.assets["drone/" + self.state].copy()
         self.image = self.animation.get_img()
-        self.rect = self.image.get_rect(center = pos)
+        self.x_pos = self.game.spaceship.image.get_width() // 2 if self.side < 0 else round(self.game.spaceship.image.get_width() * 1.5) - self.image.get_width()
+        self.pos = pg.math.Vector2(self.game.spaceship.pos.x + (self.x_pos * self.side), self.game.spaceship.pos.y + (self.game.spaceship.image.get_height() // 2))
+        self.rect = self.image.get_rect(center = self.pos)
         self.drone_mask = pg.mask.from_surface(self.image)
-        self.pos = pg.math.Vector2(self.rect.topleft)
+        
         self.direction = pg.math.Vector2()
         self.flip_image = False
         self.shoot_timer = 0
@@ -52,25 +55,15 @@ class Drone(pg.sprite.Sprite):
 
     def update(self, dt, move_x=(0, 0), move_y=(0, 0)):
         self.handle_animation(dt, move_x)
-
-        self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
-        if self.pos.x < 0:
-            self.pos.x = 0
-        elif self.pos.x + self.image.get_width()> stgs.GAME_WINDOW_RESOLUTION[0]:
-            self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0]  - self.image.get_width()
-        self.rect.x = self.pos.x
-
-        self.pos.y += (move_y[1] - move_y[0]) * self.speed *dt
-        if self.pos.y < 0:
-            self.pos.y = 0
-        elif self.pos.y + self.image.get_height() > stgs.GAME_WINDOW_RESOLUTION[1]:
-            self.pos.y = stgs.GAME_WINDOW_RESOLUTION[1]  - self.image.get_height()
-        self.rect.y = self.pos.y
+        self.x_pos = self.game.spaceship.image.get_width() // 2 if self.side < 0 else round(self.game.spaceship.image.get_width() * 1.5) - self.image.get_width()
+        self.pos = pg.math.Vector2(self.game.spaceship.pos.x + (self.x_pos * self.side), self.game.spaceship.pos.y + (self.game.spaceship.image.get_height() // 2))
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
 
     def auto_fire(self, dt):
         self.shoot_timer += dt
         if self.shoot_timer > max(0.1, self.laser_fire_rate):
-            PlayerProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 25, self.pos.y + 42))
+            PlayerProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 5))
             self.shoot_timer = 0
                 
 

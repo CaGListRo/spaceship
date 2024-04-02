@@ -19,7 +19,7 @@ class Spaceship(pg.sprite.Sprite):
         self.image.blit(self.ship_image, (0, 0))
         self.image.set_colorkey("black")
         self.rect = self.image.get_rect(center = pos)
-        self.spaceship_mask = pg.mask.from_surface(self.image)
+        self.mask = pg.mask.from_surface(self.image)
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
         self.flip_image = False
@@ -41,7 +41,7 @@ class Spaceship(pg.sprite.Sprite):
             self.kill()
     
     def create_mask(self):
-        self.spaceship_mask = pg.mask.from_surface(self.ship_image)
+        self.mask = pg.mask.from_surface(self.ship_image)
 
     def handle_animation(self, dt, move_x):
         old_state = self.state
@@ -69,10 +69,19 @@ class Spaceship(pg.sprite.Sprite):
         self.handle_animation(dt, move_x)
 
         self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
-        if self.pos.x < 0:
-            self.pos.x = 0
-        elif self.pos.x + self.ship_image.get_width()> stgs.GAME_WINDOW_RESOLUTION[0]:
-            self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0]  - self.ship_image.get_width()
+        if self.game.drones[0] == 0:
+            if self.pos.x < 0:
+                self.pos.x = 0
+        else:
+            if self.pos.x - (self.ship_image.get_width() // 2) - (self.game.drones[0].image.get_width() // 2) < 0:
+                self.pos.x = (self.ship_image.get_width() // 2) + (self.game.drones[0].image.get_width() // 2)
+
+        if self.game.drones[1] == 0:        
+            if self.pos.x + self.ship_image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
+                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.ship_image.get_width()
+        else:
+            if self.pos.x + (self.ship_image.get_width() * 1.5) + (self.game.drones[0].image.get_width() // 2) > stgs.GAME_WINDOW_RESOLUTION[0]:
+                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - (self.ship_image.get_width() * 1.5) - (self.game.drones[0].image.get_width() // 2)
         self.rect.x = self.pos.x
 
         self.pos.y += (move_y[1] - move_y[0]) * self.speed *dt
@@ -96,7 +105,12 @@ class Spaceship(pg.sprite.Sprite):
                 self.shoot_timer = 0
         elif self.weapon == "sprayer":
             if self.shoot_timer > max(0.1, self.laser_fire_rate):
-                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 25, self.pos.y + 42))
-                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 74, self.pos.y + 42))
+                
+                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 90)
+                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 120)
+                PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 60)
+                if self.game.sprayer_state == 5:
+                    PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 105)
+                    PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 75)
                 self.shoot_timer = 0
 
