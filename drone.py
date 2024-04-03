@@ -1,5 +1,6 @@
 import settings as stgs
 from projectile import PlayerProjectile
+from healthbar import Healthbar
 
 import pygame as pg
 
@@ -23,13 +24,17 @@ class Drone(pg.sprite.Sprite):
         self.shoot_timer = 0
         
         self.speed = 200
-        self.health = 100
+        self.max_health = 50
+        self.health = 50
 
         self.laser_fire_rate = 0.5
-        self.laser_damage = 10
+        self.laser_damage = 5
+
+        self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
     def take_damage(self, damage):
         self.health -= damage
+        self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
             self.kill()
     
@@ -59,6 +64,8 @@ class Drone(pg.sprite.Sprite):
         self.pos = pg.math.Vector2(self.game.spaceship.pos.x + (self.x_pos * self.side), self.game.spaceship.pos.y + (self.game.spaceship.image.get_height() // 2))
         self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
+
+        self.healthbar.update(self.health, self.pos)
 
     def auto_fire(self, dt):
         self.shoot_timer += dt

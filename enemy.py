@@ -1,5 +1,6 @@
 import settings as stgs
 from projectile import EnemyProjectile
+from healthbar import Healthbar
 
 import pygame as pg
 from random import randint
@@ -10,9 +11,8 @@ class Enemy(pg.sprite.Sprite):
         super().__init__(enemy_group)
         self.game = game
         self.health = enemy_number * 50
+        self.max_health = self.health
         self.score_factor = enemy_number
-        # self.enemy_projectile_group = projectile_group
-        # self.upgrade_group = upgrade_group
         self.animation = self.game.assets[ship_path + "/idle"].copy()
         self.image = self.animation.get_img()
         self.rect = self.image.get_rect(center = pos)
@@ -22,8 +22,11 @@ class Enemy(pg.sprite.Sprite):
         self.speed = 100
         self.killed = False
 
+        self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos)
+
     def take_damage(self, damage):
         self.health -= damage
+        self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
             self.kill()
             self.killed = True
@@ -42,10 +45,12 @@ class Enemy(pg.sprite.Sprite):
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
 
+        self.healthbar.update(self.health, self.pos)
+
         if self.pos.y > stgs.GAME_WINDOW_RESOLUTION[1]:
             self.kill()
         
-
+        
 
 class EnemyShip1(Enemy):
     def __init__(self, game, enemy_number, enemy_group, pos):

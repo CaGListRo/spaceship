@@ -1,5 +1,6 @@
 import settings as stgs
 from projectile import PlayerProjectile
+from healthbar import Healthbar
 
 import pygame as pg
 
@@ -23,20 +24,22 @@ class Spaceship(pg.sprite.Sprite):
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
         self.flip_image = False
-        self.shoot_timer = 0
-        
-        self.speed = 200
-        self.health = 100
 
-        
+        self.shoot_timer = 0
+        self.speed = 200
+        self.max_health = 100
+        self.health = 100   
         self.laser_fire_rate = 0.5
         self.rocket_fire_rate = 1
         self.laser_damage = 10
         self.rocket_damage = 50
         self.current_weapon_damage = self.laser_damage
 
+        self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
+
     def take_damage(self, damage):
         self.health -= damage
+        self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
             self.kill()
     
@@ -91,6 +94,8 @@ class Spaceship(pg.sprite.Sprite):
             self.pos.y = stgs.GAME_WINDOW_RESOLUTION[1]  - self.ship_image.get_height()
         self.rect.y = self.pos.y
 
+        self.healthbar.update(self.health, self.pos)
+
     def auto_fire(self, dt):
         self.shoot_timer += dt
         if self.weapon == "laser":
@@ -114,3 +119,5 @@ class Spaceship(pg.sprite.Sprite):
                     PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 75)
                 self.shoot_timer = 0
 
+    def draw(self, surf):
+        surf.blit(self.image, self.pos)

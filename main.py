@@ -23,6 +23,7 @@ class Game:
         self.enemy_projectile_group = pg.sprite.Group()
         self.upgrade_group = pg.sprite.Group()
         self.fx_list = []
+        self.healthbars = []
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
@@ -120,6 +121,7 @@ class Game:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
+                    self.fx_list.append(SmallExplosion(self, (projectile.pos.x, projectile.pos.y)))
                     sprite.take_damage(projectile.damage)
                     projectile.kill()
 
@@ -179,6 +181,10 @@ class Game:
             if remove_hit:
                 self.fx_list.remove(projectile_hit)
 
+        for healthbar in self.healthbars:
+            if healthbar.current_health <= 0:
+                self.healthbars.remove(healthbar)
+
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
         self.main_window.blit(score_to_blit, (8, 8))
@@ -201,6 +207,8 @@ class Game:
         self.player_group.draw(self.game_window)
         for effect in self.fx_list:
             effect.draw(self.game_window)
+        for healthbar in self.healthbars:
+            healthbar.draw(self.game_window)
 
         pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
         self.main_window.blit(self.game_window, (195, 95))
