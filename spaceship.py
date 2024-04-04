@@ -24,6 +24,7 @@ class Spaceship(pg.sprite.Sprite):
         self.pos = pg.math.Vector2(self.rect.topleft)
         self.direction = pg.math.Vector2()
         self.flip_image = False
+        self.rocket_flip_flop = True
 
         self.shoot_timer = 0
         self.speed = 200
@@ -83,8 +84,8 @@ class Spaceship(pg.sprite.Sprite):
             if self.pos.x + self.ship_image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
                 self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.ship_image.get_width()
         else:
-            if self.pos.x + (self.ship_image.get_width() * 1.5) + (self.game.drones[0].image.get_width() // 2) > stgs.GAME_WINDOW_RESOLUTION[0]:
-                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - (self.ship_image.get_width() * 1.5) - (self.game.drones[0].image.get_width() // 2)
+            if self.pos.x + (self.ship_image.get_width() * 1.5) + (self.game.drones[1].image.get_width() // 2) > stgs.GAME_WINDOW_RESOLUTION[0]:
+                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - (self.ship_image.get_width() * 1.5) - (self.game.drones[1].image.get_width() // 2)
         self.rect.x = self.pos.x
 
         self.pos.y += (move_y[1] - move_y[0]) * self.speed *dt
@@ -104,13 +105,16 @@ class Spaceship(pg.sprite.Sprite):
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 74, self.pos.y + 42))
                 self.shoot_timer = 0
         elif self.weapon == "rocket_launcher":
-            if self.shoot_timer > max(0.1, self.laser_fire_rate):
-                PlayerProjectile(self.game, "rocket1", self.current_weapon_damage, (self.pos.x + 25, self.pos.y + 42))
-                PlayerProjectile(self.game, "rocket1", self.current_weapon_damage, (self.pos.x + 74, self.pos.y + 42))
+            if self.shoot_timer > max(0.1, self.rocket_fire_rate):
+                if self.rocket_flip_flop:
+                    PlayerProjectile(self.game, "rocket1", self.current_weapon_damage, (self.pos.x + 25, self.pos.y + 42))
+                    self.rocket_flip_flop = False
+                else:
+                    PlayerProjectile(self.game, "rocket1", self.current_weapon_damage, (self.pos.x + 74, self.pos.y + 42))
+                    self.rocket_flip_flop = True
                 self.shoot_timer = 0
         elif self.weapon == "sprayer":
-            if self.shoot_timer > max(0.1, self.laser_fire_rate):
-                
+            if self.shoot_timer > max(0.1, self.laser_fire_rate): 
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 90)
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 120)
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 60)

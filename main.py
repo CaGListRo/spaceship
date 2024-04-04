@@ -38,10 +38,11 @@ class Game:
             "drone/idle": Animation(load_images("drone/idle", scale_factor=0.3), animation_duration=0.5, loop=True),
             "drone/curve": Animation(load_images("drone/curve", scale_factor=0.3), animation_duration=0.5, loop=True),
             "enemy1/idle": Animation(load_images("enemies/ship1/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
-            "enemy1/curve": Animation(load_images("enemies/ship1/curve", scale_factor=0.25), animation_duration=0.5),
             "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
-            "enemy2/curve": Animation(load_images("enemies/ship2/curve", scale_factor=0.25), animation_duration=0.5),
             "enemy3/idle": Animation(load_images("enemies/ship3/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "boss1/idle": Animation(load_images("enemies/boss1/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss1/left": Animation(load_images("enemies/boss1/left(right)", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "boss1/right": Animation(load_images("enemies/boss1/right(left)", scale_factor=0.25), animation_duration=0.5, loop=True),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
             "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2, loop=True),
             "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
@@ -50,7 +51,6 @@ class Game:
             "projectile_hit": Animation(load_images("fx/small explosion", scale_factor=0.5), animation_duration=0.5, loop=False),
         }
         
-        # Create player and add to groups
         self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
         self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
@@ -95,8 +95,10 @@ class Game:
                     self.spaceship.rocket_damage += 5
                 elif upgrade.upgrade_number == 4:
                     self.spaceship.laser_fire_rate += 0.05
+                    self.spaceship.rocket_fire_rate += 0.1
                 elif upgrade.upgrade_number == 5:
-                    self.spaceship.rocket_fire_rate -= 0.05
+                    self.spaceship.laser_fire_rate -= 0.05
+                    self.spaceship.rocket_fire_rate -= 0.1
                 elif upgrade.upgrade_number == 6:
                     self.spaceship.health = 100
                 elif upgrade.upgrade_number == 7:
@@ -188,8 +190,6 @@ class Game:
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
         self.main_window.blit(score_to_blit, (8, 8))
-        health_to_blit = self.score_font.render(str(self.spaceship.health), True, (247, 0, 0))
-        self.main_window.blit(health_to_blit, (8, 200))
 
     def move_background(self, dt):
         self.background_y += dt * 10
