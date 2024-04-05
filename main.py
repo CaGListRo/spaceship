@@ -41,8 +41,8 @@ class Game:
             "enemy2/idle": Animation(load_images("enemies/ship2/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "enemy3/idle": Animation(load_images("enemies/ship3/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "boss1/idle": Animation(load_images("enemies/boss1/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
-            "boss1/left": Animation(load_images("enemies/boss1/left(right)", scale_factor=0.25), animation_duration=0.5, loop=True),
-            "boss1/right": Animation(load_images("enemies/boss1/right(left)", scale_factor=0.25), animation_duration=0.5, loop=True),
+            "boss1/left": Animation(load_images("enemies/boss1/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss1/right": Animation(load_images("enemies/boss1/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
             "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2, loop=True),
             "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
@@ -141,8 +141,9 @@ class Game:
                     self.score += 10
 
     def handle_enemies(self):
+        self.wave = 19
         if self.wave != 20:
-            if len(self.enemy_group) < 2:
+            if len(self.enemy_group) < 1:
                 enemy_creator(self, self.enemy_group, self.phase, self.wave)
                 self.wave += 1
 
