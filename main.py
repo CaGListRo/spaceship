@@ -27,6 +27,7 @@ class Game:
 
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
+            "title": load_image("", "title.png", 1),
             "ship/idle": Animation(load_images("ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "ship/curve": Animation(load_images("ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
             "laser/idle": load_image("ship/weapons", "laser idle.png", 0.25),
@@ -141,7 +142,6 @@ class Game:
                     self.score += 10
 
     def handle_enemies(self):
-        self.wave = 19
         if self.wave != 20:
             if len(self.enemy_group) < 1:
                 enemy_creator(self, self.enemy_group, self.phase, self.wave)
@@ -197,7 +197,7 @@ class Game:
         self.background_y = min(0, self.background_y)
 
     def draw_window(self):
-        self.main_window.fill('blue')
+        self.main_window.blit(self.assets["title"], (0, 0))
         self.game_window.blit(self.assets["background"], (0, self.background_y))
 
         self.draw_score()
