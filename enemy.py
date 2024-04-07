@@ -195,7 +195,7 @@ class Boss1(Enemy):
     def handle_shooting(self, dt):
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
-            self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket", "upgrade"])
+            self.fire_mode = "rocket"#choice(["all", "cylone", "knight_rider", "laola", "random", "rocket", "upgrade"])
             self.shooting_state = "shooting"
 
     def reset_shooting(self):
@@ -326,4 +326,4 @@ class Boss1(Enemy):
         EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 518, self.pos.y + self.image.get_height() - 166), "red")
 
     def fire_rocket(self):
-        EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), "green")
+        EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() - 20), "green")

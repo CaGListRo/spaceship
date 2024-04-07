@@ -19,7 +19,7 @@ class Projectile(pg.sprite.Sprite):
         self.direction = direction
         
 
-    def get_image(self, type, color):
+    def get_image(self, type, color=None):
         if type == "laser":
             self.image = self.game.assets[type][color]
             if self.game.spaceship.weapon == "sprayer" and self.angle != 90:
