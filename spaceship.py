@@ -35,6 +35,7 @@ class Spaceship(pg.sprite.Sprite):
         self.laser_damage = 10
         self.rocket_damage = 50
         self.current_weapon_damage = self.laser_damage
+        self.auto_fire = True
 
         self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
@@ -59,7 +60,8 @@ class Spaceship(pg.sprite.Sprite):
             self.create_mask()
 
         self.flip_image = True if (move_x[1] - move_x[0]) > 0 else False
-        self.auto_fire(dt)
+        if self.auto_fire:
+            self.fire_weapons(dt)
         self.animation.update(dt)
 
         self.ship_image = self.animation.get_img()
@@ -97,7 +99,7 @@ class Spaceship(pg.sprite.Sprite):
 
         self.healthbar.update(self.health, self.pos)
 
-    def auto_fire(self, dt):
+    def fire_weapons(self, dt):
         self.shoot_timer += dt
         if self.weapon == "laser":
             if self.shoot_timer > max(0.1, self.laser_fire_rate):

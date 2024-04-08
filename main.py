@@ -44,6 +44,11 @@ class Game:
             "boss1/idle": Animation(load_images("enemies/boss1/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss1/left": Animation(load_images("enemies/boss1/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss1/right": Animation(load_images("enemies/boss1/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss2/idle": Animation(load_images("enemies/boss2/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss2/left": Animation(load_images("enemies/boss2/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss2/right": Animation(load_images("enemies/boss2/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss2/flight": Animation(load_images("enemies/boss2/flight", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss2/open": Animation(load_images("enemies/boss2/open", scale_factor=0.75), animation_duration=1, loop=False),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
             "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2, loop=True),
             "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
@@ -67,8 +72,8 @@ class Game:
         self.drones_max = 2
         self.run = True
         self.score = 0
-        self.phase = 1
-        self.wave = 0
+        self.phase = 2
+        self.wave = 19
         self.sprayer_state = 0
 
     def add_drones(self):
@@ -175,8 +180,8 @@ class Game:
     def update_groups(self, dt):  
         self.player_group.update(dt, self.move_x, self.move_y)
         self.player_projectile_group.update(dt)
-        self.enemy_group.update(dt)
         self.enemy_projectile_group.update(dt)
+        self.enemy_group.update(dt)
         self.upgrade_group.update(dt)
 
         for projectile_hit in self.fx_list:
@@ -202,8 +207,8 @@ class Game:
 
         self.draw_score()
         self.upgrade_group.draw(self.game_window)
-        self.enemy_group.draw(self.game_window)
         self.enemy_projectile_group.draw(self.game_window)
+        self.enemy_group.draw(self.game_window)
         self.player_projectile_group.draw(self.game_window)
         self.player_group.draw(self.game_window)
         for effect in self.fx_list:
