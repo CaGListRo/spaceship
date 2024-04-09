@@ -48,7 +48,12 @@ class Game:
             "boss2/left": Animation(load_images("enemies/boss2/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss2/right": Animation(load_images("enemies/boss2/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss2/flight": Animation(load_images("enemies/boss2/flight", scale_factor=0.75), animation_duration=0.5, loop=True),
-            "boss2/open": Animation(load_images("enemies/boss2/open", scale_factor=0.75), animation_duration=1, loop=False),
+            "boss2/open": Animation(load_images("enemies/boss2/open", scale_factor=0.75), animation_duration=2, loop=False),
+            "boss3/idle": Animation(load_images("enemies/boss3/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss3/left": Animation(load_images("enemies/boss3/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss3/right": Animation(load_images("enemies/boss3/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss3/flight": Animation(load_images("enemies/boss3/flight", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss3/open": Animation(load_images("enemies/boss3/open", scale_factor=0.75), animation_duration=2, loop=False),
             "laser": load_images("ammo/lasers", scale_factor=0.5),
             "rocket1": Animation(load_images("ammo/rockets/rocket1", scale_factor=0.25), animation_duration=2, loop=True),
             "upgrade/background": load_images("upgrades/backgrounds", scale_factor=0.5),
@@ -72,7 +77,7 @@ class Game:
         self.drones_max = 2
         self.run = True
         self.score = 0
-        self.phase = 2
+        self.phase = 3
         self.wave = 19
         self.sprayer_state = 0
 

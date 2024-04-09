@@ -17,3 +17,5 @@ def enemy_creator(game, enemy_group, phase, wave):
             Boss1(game, stgs.enemy_waves[phase][wave][i], enemy_group, (x_pos + x_pos * i, -50))
         if stgs.enemy_waves[phase][wave][i] == 120:
             Boss2(game, stgs.enemy_waves[phase][wave][i], enemy_group, (x_pos + x_pos * i, -50))
+        if stgs.enemy_waves[phase][wave][i] == 140:
+            Boss3(game, stgs.enemy_waves[phase][wave][i], enemy_group, (x_pos + x_pos * i, -50))

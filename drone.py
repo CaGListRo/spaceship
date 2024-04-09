@@ -30,6 +30,7 @@ class Drone(pg.sprite.Sprite):
         self.laser_fire_rate = 0.5
         self.laser_damage = 5
 
+        self.auto_fire = True
         self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
     def take_damage(self, damage):
@@ -58,7 +59,8 @@ class Drone(pg.sprite.Sprite):
             self.create_mask()
 
         self.flip_image = True if (move_x[1] - move_x[0]) > 0 else False
-        self.auto_fire(dt)
+        if self.auto_fire:
+            self.fire_weapon(dt)
         self.animation.update(dt)
 
         self.image = pg.transform.flip(self.animation.get_img(), self.flip_image, False)
@@ -72,7 +74,7 @@ class Drone(pg.sprite.Sprite):
 
         self.healthbar.update(self.health, self.pos)
 
-    def auto_fire(self, dt):
+    def fire_weapon(self, dt):
         self.shoot_timer += dt
         if self.shoot_timer > max(0.1, self.laser_fire_rate):
             PlayerProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 5))

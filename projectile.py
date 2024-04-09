@@ -75,6 +75,6 @@ class PlayerProjectile(Projectile):
 
 
 class EnemyProjectile(Projectile):
-    def __init__(self, game, projectile_type, damage, pos, laser_color):
-        super().__init__(game, projectile_type, damage, game.enemy_projectile_group, pos, direction=1, laser_color=laser_color)
+    def __init__(self, game, projectile_type, damage, pos, laser_color, angle=90):
+        super().__init__(game, projectile_type, damage, game.enemy_projectile_group, pos, direction=1, laser_color=laser_color, angle=angle)
         self.speed = 150
