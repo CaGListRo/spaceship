@@ -58,7 +58,10 @@ class Projectile(pg.sprite.Sprite):
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
 
-        if self.pos.y < -10 or self.pos.x < -10 or self.pos.x > stgs.GAME_WINDOW_RESOLUTION[0] + 10:
+        if self.pos.y < -10 or self.pos.y > stgs.GAME_WINDOW_RESOLUTION[1] + 10:
+            self.kill()
+        
+        if self.pos.x < -10 or self.pos.x > stgs.GAME_WINDOW_RESOLUTION[0] + 10:
             self.kill()
 
 

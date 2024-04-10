@@ -77,8 +77,8 @@ class Game:
         self.drones_max = 2
         self.run = True
         self.score = 0
-        self.phase = 3
-        self.wave = 19
+        self.phase = 1
+        self.wave = 0
         self.sprayer_state = 0
 
     def add_drones(self):
@@ -128,6 +128,11 @@ class Game:
                     self.sprayer_state = 3 if self.sprayer_state == 0 else 5
 
                 upgrade.kill()
+
+    def proceed_level(self):
+        self.phase += 1
+        self.wave = 0
+        self.background_y = self.background_start_y
 
     def handle_projectile_player_collision(self):
         for projectile in self.enemy_projectile_group:
