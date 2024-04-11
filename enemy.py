@@ -373,6 +373,16 @@ class Boss2(Enemy):
                 drone.auto_fire = False
         self.start_fight = False
 
+    def take_damage(self, damage):
+        self.health -= damage
+        self.healthbar.update(self.health, self.pos)
+        if self.health <= 0:
+            self.kill()
+            self.killed = True
+            self.game.score += 50 * self.score_factor * self.multiplicator
+            getattr(self.game, "proceed_level")()
+        return self.killed
+
     def create_mask(self):
         self.mask = pg.mask.from_surface(self.image)    
 
@@ -625,6 +635,16 @@ class Boss3(Enemy):
             if drone != 0:
                 drone.auto_fire = False
         self.start_fight = False
+
+    def take_damage(self, damage):
+        self.health -= damage
+        self.healthbar.update(self.health, self.pos)
+        if self.health <= 0:
+            self.kill()
+            self.killed = True
+            self.game.score += 50 * self.score_factor * self.multiplicator
+            getattr(self.game, "proceed_level")()
+        return self.killed
 
     def create_mask(self):
         self.mask = pg.mask.from_surface(self.image)    

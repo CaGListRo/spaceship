@@ -5,10 +5,10 @@ from explosion import ShipExplosion, SmallExplosion
 from drone import Drone
 from enemy_creator import enemy_creator
 from utils import load_image, load_images, Animation
+from button import Button
 
 from time import time
 import pygame as pg
-from random import randint
 
 
 class Game:
@@ -80,6 +80,8 @@ class Game:
         self.phase = 1
         self.wave = 0
         self.sprayer_state = 0
+
+        self.game_state = "menu"
 
     def add_drones(self):
         for i, _ in enumerate(self.drones):
@@ -212,39 +214,54 @@ class Game:
         self.background_y = min(0, self.background_y)
 
     def draw_window(self):
-        self.main_window.blit(self.assets["title"], (0, 0))
-        self.game_window.blit(self.assets["background"], (0, self.background_y))
+        self.main_window.blit(pg.transform.scale(self.assets["title"], (1600, 900)), (0, 0))
+        if self.game_state == "menu":
+            self.start_button.render()
+            self.help_button.render()
+        elif self.game_state == "play":
+            self.game_window.blit(self.assets["background"], (0, self.background_y))
 
-        self.draw_score()
-        self.upgrade_group.draw(self.game_window)
-        self.enemy_projectile_group.draw(self.game_window)
-        self.enemy_group.draw(self.game_window)
-        self.player_projectile_group.draw(self.game_window)
-        self.player_group.draw(self.game_window)
-        for effect in self.fx_list:
-            effect.draw(self.game_window)
-        for healthbar in self.healthbars:
-            healthbar.draw(self.game_window)
+            self.draw_score()
+            self.upgrade_group.draw(self.game_window)
+            self.enemy_projectile_group.draw(self.game_window)
+            self.enemy_group.draw(self.game_window)
+            self.player_projectile_group.draw(self.game_window)
+            self.player_group.draw(self.game_window)
+            for effect in self.fx_list:
+                effect.draw(self.game_window)
+            for healthbar in self.healthbars:
+                healthbar.draw(self.game_window)
 
-        pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
-        self.main_window.blit(self.game_window, (195, 95))
+            pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
+            self.main_window.blit(self.game_window, (195, 95))
         pg.display.update()
 
+    def create_start_screen(self):
+        self.start_button = Button(self.main_window, "Start", (1300, 700))
+        self.help_button =  Button(self.main_window, "Help", (1300, 800))
+
     def main(self):
+        self.create_start_screen()
         last_time = time()
         while self.run:
             dt = time() - last_time
             last_time = time()
-
             self.handle_events()
-            self.handle_enemies()
 
-            self.update_groups(dt)
-            self.handle_upgrade_collision()
-            self.handle_projectile_enemy_collision()
-            self.handle_projectile_player_collision()
+            if self.game_state == "menu":
+                if self.start_button.check_button_collision():
+                    self.game_state = "play"
+                self.help_button.check_button_collision()
 
-            self.move_background(dt)
+            elif self.game_state == "play":         
+                self.handle_enemies()
+
+                self.update_groups(dt)
+                self.handle_upgrade_collision()
+                self.handle_projectile_enemy_collision()
+                self.handle_projectile_player_collision()
+
+                self.move_background(dt)
 
             self.draw_window()
 
