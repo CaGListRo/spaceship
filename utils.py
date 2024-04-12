@@ -1,5 +1,6 @@
 import os
 import pygame as pg
+from random import randint
 
 
 BASE_PATH = "images/"
@@ -44,3 +45,19 @@ class Animation:
             return self.img_list[self.current_frame]
         else:
             return None
+        
+
+def help_site_creator(game, font):
+    surf = pg.Surface((1600, 900))
+    surf.set_colorkey("black")
+    with open("help_text.txt", "r", encoding="utf-8") as file:
+        text = file.read()
+        lines = text.splitlines()
+        for i, line in enumerate(lines):
+            text = font.render(line, True, (247, 247, 247))
+            surf.blit(text, (50, 50 + i * 50))
+    for i, upgrade in enumerate(game.assets["upgrade/image"]):
+        background_number = randint(0, 6)
+        surf.blit(game.assets["upgrade/background"][background_number], (50 + i * 130, 400))
+        surf.blit(upgrade, (50 + i * 130, 400))
+    return surf

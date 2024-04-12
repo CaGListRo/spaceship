@@ -40,4 +40,5 @@ class Button:
                     self.clicked = False
         else:
             self.button_top_color = ((244, 164, 96))
+            self.clicked = False
         return self.clicked

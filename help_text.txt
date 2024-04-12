@@ -1,0 +1,6 @@
+You steer your spaceship with the arrow keys.
+The spaceship is always in auto-fire-mode so you don't have to hold a fire button.
+
+If you destroy an enemy ship there will be an upgrade, but some of these are downgrades,
+so be carefull what you take.
+The color of an upgrade is completly random.

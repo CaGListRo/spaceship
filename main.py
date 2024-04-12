@@ -4,7 +4,7 @@ from upgrades import Upgrade
 from explosion import ShipExplosion, SmallExplosion
 from drone import Drone
 from enemy_creator import enemy_creator
-from utils import load_image, load_images, Animation
+from utils import load_image, load_images, Animation, help_site_creator
 from button import Button
 
 from time import time
@@ -28,6 +28,7 @@ class Game:
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
             "title": load_image("", "title.png", 1),
+            "life_image": load_image("", "spaceship.png", 1),
             "ship/idle": Animation(load_images("ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "ship/curve": Animation(load_images("ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
             "laser/idle": load_image("ship/weapons", "laser idle.png", 0.25),
@@ -66,6 +67,7 @@ class Game:
         self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
 
+        self.help_font = pg.font.SysFont("comicsans", 32)
         self.score_font = pg.font.SysFont("comicsans", 42)
 
         self.background_start_y = -2000
@@ -82,6 +84,7 @@ class Game:
         self.sprayer_state = 0
 
         self.game_state = "menu"
+        self.help_site = help_site_creator(self, self.help_font)
 
     def add_drones(self):
         for i, _ in enumerate(self.drones):
@@ -205,6 +208,12 @@ class Game:
             if healthbar.current_health <= 0:
                 self.healthbars.remove(healthbar)
 
+    def draw_lives(self):
+        for i in range(self.lives):
+            x_pos = 10 if i < 9 else 60
+            self.main_window.blit(pg.transform.scale(self.assets["life_image"], (50, 82)), (x_pos, 800 - 90 * i))
+
+
     def draw_score(self):
         score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
         self.main_window.blit(score_to_blit, (8, 8))
@@ -218,10 +227,14 @@ class Game:
         if self.game_state == "menu":
             self.start_button.render()
             self.help_button.render()
+        elif self.game_state == "help":
+            self.main_window.blit(self.help_site, (0, 0))
+            self.back_button.render()
         elif self.game_state == "play":
             self.game_window.blit(self.assets["background"], (0, self.background_y))
 
             self.draw_score()
+            self.draw_lives()
             self.upgrade_group.draw(self.game_window)
             self.enemy_projectile_group.draw(self.game_window)
             self.enemy_group.draw(self.game_window)
@@ -236,12 +249,13 @@ class Game:
             self.main_window.blit(self.game_window, (195, 95))
         pg.display.update()
 
-    def create_start_screen(self):
+    def create_buttons(self):
         self.start_button = Button(self.main_window, "Start", (1300, 700))
         self.help_button =  Button(self.main_window, "Help", (1300, 800))
+        self.back_button = Button(self.main_window, "back", (200, 800))
 
     def main(self):
-        self.create_start_screen()
+        self.create_buttons()
         last_time = time()
         while self.run:
             dt = time() - last_time
@@ -251,7 +265,11 @@ class Game:
             if self.game_state == "menu":
                 if self.start_button.check_button_collision():
                     self.game_state = "play"
-                self.help_button.check_button_collision()
+                if self.help_button.check_button_collision():
+                    self.game_state = "help"
+            elif self.game_state == "help":
+                if self.back_button.check_button_collision():
+                    self.game_state = "menu"
 
             elif self.game_state == "play":         
                 self.handle_enemies()
