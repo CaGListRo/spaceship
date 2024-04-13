@@ -37,13 +37,15 @@ class Drone(pg.sprite.Sprite):
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
-            if self.side < 0:              
+            self.game.healthbars.remove(self.healthbar)
+            if self.side < 0 or self.game.drones[0] == 0:              
                 self.kill()
-                self.game.drones[0] = 0      
-            elif self.side > 0:
+                self.game.drones[0] = 0
+                      
+            elif self.side > 0 or self.game.drones[1] == 0:
                 self.kill()
                 self.game.drones[1] = 0
-    
+                
     def create_mask(self):
         self.drone_mask = pg.mask.from_surface(self.image)
 

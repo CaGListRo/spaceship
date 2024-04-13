@@ -34,6 +34,7 @@ class Spaceship(pg.sprite.Sprite):
         self.rocket_fire_rate = 1
         self.laser_damage = 10
         self.rocket_damage = 50
+        self.current_fire_rate = self.laser_fire_rate
         self.current_weapon_damage = self.laser_damage
         self.auto_fire = True
 
@@ -44,6 +45,13 @@ class Spaceship(pg.sprite.Sprite):
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
             self.kill()
+            getattr(self.game, "handle_life_lost")()
+
+    def return_current_fire_rate(self):
+        return self.current_fire_rate
+    
+    def return_current_weapon_damage(self):
+        return self.current_weapon_damage
     
     def create_mask(self):
         self.mask = pg.mask.from_surface(self.ship_image)
@@ -73,6 +81,7 @@ class Spaceship(pg.sprite.Sprite):
 
     def update(self, dt, move_x=(0, 0), move_y=(0, 0)):
         self.handle_animation(dt, move_x)
+        print(f"fp: {self.current_weapon_damage}| fr: {self.current_fire_rate} ")
 
         self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
         if self.game.drones[0] == 0:
@@ -102,11 +111,15 @@ class Spaceship(pg.sprite.Sprite):
     def fire_weapons(self, dt):
         self.shoot_timer += dt
         if self.weapon == "laser":
+            self.current_fire_rate = self.laser_fire_rate
+            self.current_weapon_damage = self.laser_damage
             if self.shoot_timer > max(0.1, self.laser_fire_rate):
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 25, self.pos.y + 42))
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + 74, self.pos.y + 42))
                 self.shoot_timer = 0
         elif self.weapon == "rocket_launcher":
+            self.current_fire_rate = self.rocket_fire_rate
+            self.current_weapon_damage = self.rocket_damage
             if self.shoot_timer > max(0.1, self.rocket_fire_rate):
                 if self.rocket_flip_flop:
                     PlayerProjectile(self.game, "rocket1", self.current_weapon_damage, (self.pos.x + 25, self.pos.y + 42))
@@ -116,6 +129,8 @@ class Spaceship(pg.sprite.Sprite):
                     self.rocket_flip_flop = True
                 self.shoot_timer = 0
         elif self.weapon == "sprayer":
+            self.current_fire_rate = self.laser_fire_rate
+            self.current_weapon_damage = self.laser_damage
             if self.shoot_timer > max(0.1, self.laser_fire_rate): 
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 90)
                 PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 120)

@@ -122,14 +122,17 @@ class Game:
                 elif upgrade.upgrade_number == 8:
                     self.spaceship.weapon = "laser"  # parallel fire
                     self.spaceship.current_weapon_damage = self.spaceship.laser_damage
+                    self.spaceship.current_fire_rate = self.spaceship.laser_fire_rate
                     self.sprayer_state = 0
                 elif upgrade.upgrade_number == 9:
                     self.spaceship.weapon = "rocket_launcher"  # rockets
                     self.spaceship.current_weapon_damage = self.spaceship.rocket_damage
+                    self.spaceship.current_fire_rate = self.spaceship.rocket_fire_rate
                     self.sprayer_state = 0
                 elif upgrade.upgrade_number == 10:
                     self.spaceship.weapon = "sprayer"  # spray
                     self.spaceship.current_weapon_damage = self.spaceship.laser_damage
+                    self.spaceship.current_fire_rate = self.spaceship.laser_fire_rate
                     self.sprayer_state = 3 if self.sprayer_state == 0 else 5
 
                 upgrade.kill()
@@ -213,10 +216,20 @@ class Game:
             x_pos = 10 if i < 9 else 60
             self.main_window.blit(pg.transform.scale(self.assets["life_image"], (50, 82)), (x_pos, 800 - 90 * i))
 
+    def handle_life_lost(self):
+        if self.lives > 0:
+            for element in self.player_group:
+                element.kill()
+            self.drones = [0, 0]
+            self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
+            self.lives -= 1
+        else:
+            self.run = False
 
     def draw_score(self):
-        score_to_blit = self.score_font.render(str(self.score), True, (247, 247, 247))
-        self.main_window.blit(score_to_blit, (8, 8))
+        string_to_render = f"Score: {self.score} FP: {self.spaceship.current_weapon_damage} FR: {round(self.spaceship.current_fire_rate, 2)}"
+        string_to_blit = self.score_font.render(string_to_render, True, (247, 247, 247))
+        self.main_window.blit(string_to_blit, (200, 8))
 
     def move_background(self, dt):
         self.background_y += dt * 10
