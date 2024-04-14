@@ -213,7 +213,7 @@ class Game:
 
     def draw_lives(self):
         for i in range(self.lives):
-            x_pos = 10 if i < 9 else 60
+            x_pos = 10
             self.main_window.blit(pg.transform.scale(self.assets["life_image"], (50, 82)), (x_pos, 800 - 90 * i))
 
     def handle_life_lost(self):
@@ -226,10 +226,16 @@ class Game:
         else:
             self.run = False
 
-    def draw_score(self):
-        string_to_render = f"Score: {self.score} FP: {self.spaceship.current_weapon_damage} FR: {round(self.spaceship.current_fire_rate, 2)}"
-        string_to_blit = self.score_font.render(string_to_render, True, (247, 247, 247))
-        self.main_window.blit(string_to_blit, (200, 8))
+    def draw_stats_and_score(self):
+        score_to_render = f"Score: {self.score}"
+        score_to_blit = self.score_font.render(score_to_render, True, (247, 247, 247))
+        self.main_window.blit(score_to_blit, (200, 8))
+        fire_power_to_render = f"FP: {self.spaceship.current_weapon_damage}"
+        fire_power_to_blit = self.score_font.render(fire_power_to_render, True, (247, 247, 247))
+        self.main_window.blit(fire_power_to_blit, (600, 8))
+        fire_rate_to_render = f"FR: {round(self.spaceship.current_fire_rate, 2)}"
+        fire_rate_to_blit = self.score_font.render(fire_rate_to_render, True, (247, 247, 247))
+        self.main_window.blit(fire_rate_to_blit, (800, 8))
 
     def move_background(self, dt):
         self.background_y += dt * 10
@@ -246,7 +252,7 @@ class Game:
         elif self.game_state == "play":
             self.game_window.blit(self.assets["background"], (0, self.background_y))
 
-            self.draw_score()
+            self.draw_stats_and_score()
             self.draw_lives()
             self.upgrade_group.draw(self.game_window)
             self.enemy_projectile_group.draw(self.game_window)
