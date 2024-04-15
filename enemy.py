@@ -121,10 +121,13 @@ class Boss1(Enemy):
     def __init__(self, game, enemy_number, enemy_group, pos, phase):
         super().__init__(game, "boss1", enemy_number, enemy_group, pos, phase)
         self.game = game
-        self.state = "idle"
+        self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicator))
         self.state_timer = 0
         self.speed_x = 50
+
+        self.animation = self.game.assets["boss1/" + self.state].copy()
+        self.rect = self.image.get_rect(center = self.pos)
 
         self.hold_fire = randint(1, (10 // self.multiplicator))
         self.shoot_timer = 0 
@@ -141,6 +144,10 @@ class Boss1(Enemy):
         self.upgrade_counter = 0
 
         self.game.spaceship.auto_fire = False
+        for drone in self.game.drones:
+            if drone != 0:
+                drone.auto_fire = False
+        self.start_fight = False
 
     def take_damage(self, damage):
         self.health -= damage
@@ -180,20 +187,40 @@ class Boss1(Enemy):
         self.create_mask()
 
     def update(self, dt):
-        self.animation.update(dt)
-        self.image = self.animation.get_img()
+        print(self.state)
+        if self.state != "open":
+            self.animation.update(dt)
+            self.image = self.animation.get_img()
+
         if self.pos.y < 10:
             self.direction.y = 1
             self.direction.x = 0
-        
+
         elif self.pos.y >= 10 and self.speed_y > 0:
             self.speed_y = max(0, self.speed_y - dt * 150)
+
+        elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+            if self.state != "open":
+                self.state = "open"
+                self.animation = self.game.assets["boss1/" + self.state].copy()
+            self.image = self.animation.get_img()
+            self.animation.update(dt)
+
+            if self.animation.done:
+                self.state = "idle"
+                self.handle_state(dt)
+                self.handle_image_and_mask()
+                self.start_fight = True
             
-        else:
+        elif self.pos.y >= 10 and self.start_fight:
             if not self.game.spaceship.auto_fire:
                 self.game.spaceship.auto_fire = True
+                for drone in self.game.drones:
+                    if drone != 0:
+                        drone.auto_fire = True
             self.direction.y = 0
             self.handle_state(dt)
+
             if self.shooting_state == "not shooting":
                 self.handle_shooting(dt)
                 
@@ -232,6 +259,7 @@ class Boss1(Enemy):
 
     def handle_fire_modi(self, dt):
         if self.shooting_state == "shooting":
+            self.upgrade_counter += 1
             self.projectile_interval_timer += dt
 
             if self.fire_mode == "all":
@@ -309,6 +337,15 @@ class Boss1(Enemy):
             elif self.fire_mode == "rocket":
                 if self.projectile_interval_timer >= 1:
                     self.fire_weapon(11)
+                    self.fire_weapon(12)
+                    self.shot_counter += 1
+                    self.projectile_interval_timer = 0
+                if self.shot_counter > 10:
+                    self.reset_shooting()
+
+            elif self.fire_mode == "spray":
+                if self.projectile_interval_timer >= 0.5:
+                    self.fire_weapon(13)
                     self.shot_counter += 1
                     self.projectile_interval_timer = 0
                 if self.shot_counter > 10:
@@ -316,31 +353,37 @@ class Boss1(Enemy):
 
             if self.upgrade_counter >= self.multiplicator and len(self.game.upgrade_group) < 1:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-                self.reset_shooting()
+                self.upgrade_counter = 0
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 232, self.pos.y + self.image.get_height() - 166), "red")       
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 149, self.pos.y + 239), "red")       
         elif weapon_number == 2:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 248, self.pos.y + self.image.get_height() - 152), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 176, self.pos.y + 255), "red")
         elif weapon_number == 3:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 264, self.pos.y + self.image.get_height() - 142), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 204, self.pos.y + 272), "red")
         elif weapon_number == 4:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 279, self.pos.y + self.image.get_height() - 125), "red")       
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 232, self.pos.y + 288), "red")       
         elif weapon_number == 5:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 295, self.pos.y + self.image.get_height() - 110), "red")       
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 260, self.pos.y + 305), "red")       
         elif weapon_number == 6:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 456, self.pos.y + self.image.get_height() - 110), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 491, self.pos.y + 305), "red")
         elif weapon_number == 7:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 472, self.pos.y + self.image.get_height() - 125), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 519, self.pos.y + 288), "red")
         elif weapon_number == 8:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 487, self.pos.y + self.image.get_height() - 142), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 547, self.pos.y + 272), "red")
         elif weapon_number == 9:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 502, self.pos.y + self.image.get_height() - 152), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 575, self.pos.y + 255), "red")
         elif weapon_number == 10:
-            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 518, self.pos.y + self.image.get_height() - 166), "red")
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 602, self.pos.y + 239), "red")
         elif weapon_number == 11:
-            EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() - 20), "green")
+            EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + 64, self.pos.y + 169), "green")
+        elif weapon_number == 12:
+            EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + 686, self.pos.y + 169), "red")
+        elif weapon_number == 13:  # sprayer
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 347), "red", 240)
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 347), "red", 270)
+            EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 347), "red", 300)
 
 
 class Boss2(Enemy):
@@ -440,6 +483,9 @@ class Boss2(Enemy):
         elif self.pos.y >= 10 and self.start_fight:
             if not self.game.spaceship.auto_fire:
                 self.game.spaceship.auto_fire = True
+                for drone in self.game.drones:
+                    if drone != 0:
+                        drone.auto_fire = True
             self.direction.y = 0
             self.handle_state(dt)
 
@@ -705,6 +751,9 @@ class Boss3(Enemy):
         elif self.pos.y >= 10 and self.start_fight:
             if not self.game.spaceship.auto_fire:
                 self.game.spaceship.auto_fire = True
+                for drone in self.game.drones:
+                    if drone != 0:
+                        drone.auto_fire = True
             self.direction.y = 0
             self.handle_state(dt)
 

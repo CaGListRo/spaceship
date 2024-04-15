@@ -16,6 +16,7 @@ class Game:
         pg.init()
         self.main_window = pg.display.set_mode(stgs.MAIN_WINDOW_RESOLUTION)
         self.game_window = pg.Surface(stgs.GAME_WINDOW_RESOLUTION)
+        self.fps = 0
 
         self.player_group = pg.sprite.Group()
         self.player_projectile_group = pg.sprite.Group()
@@ -45,6 +46,8 @@ class Game:
             "boss1/idle": Animation(load_images("enemies/boss1/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss1/left": Animation(load_images("enemies/boss1/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss1/right": Animation(load_images("enemies/boss1/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss1/flight": Animation(load_images("enemies/boss1/flight", scale_factor=0.75), animation_duration=0.5, loop=True),
+            "boss1/open": Animation(load_images("enemies/boss1/open", scale_factor=0.75), animation_duration=2, loop=False),
             "boss2/idle": Animation(load_images("enemies/boss2/idle", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss2/left": Animation(load_images("enemies/boss2/left(right)", scale_factor=0.75), animation_duration=0.5, loop=True),
             "boss2/right": Animation(load_images("enemies/boss2/right(left)", scale_factor=0.75), animation_duration=0.5, loop=True),
@@ -80,7 +83,7 @@ class Game:
         self.run = True
         self.score = 0
         self.phase = 1
-        self.wave = 0
+        self.wave = 19
         self.sprayer_state = 0
 
         self.game_state = "menu"
@@ -89,7 +92,6 @@ class Game:
     def add_drones(self):
         for i, _ in enumerate(self.drones):
             if self.drones[i] == 0 and self.drones_to_get > 0:
-                # self.drones[i] = 1
                 self.drones_to_get -= 1
                 side_picker = -1 if i == 0 else 1
                 self.drones[i] = Drone(self, self.player_group, self.player_projectile_group, side_picker)
@@ -236,6 +238,9 @@ class Game:
         fire_rate_to_render = f"FR: {round(self.spaceship.current_fire_rate, 2)}"
         fire_rate_to_blit = self.score_font.render(fire_rate_to_render, True, (247, 247, 247))
         self.main_window.blit(fire_rate_to_blit, (800, 8))
+        fps_to_render = f"FPS: {self.fps}"
+        fps_to_blit = self.score_font.render(fps_to_render, True, (247, 247, 247))
+        self.main_window.blit(fps_to_blit, (1000, 8))
 
     def move_background(self, dt):
         self.background_y += dt * 10
@@ -274,6 +279,8 @@ class Game:
         self.back_button = Button(self.main_window, "back", (200, 800))
 
     def main(self):
+        frame_counter = 0
+        time_counter = 0
         self.create_buttons()
         last_time = time()
         while self.run:
@@ -292,6 +299,12 @@ class Game:
 
             elif self.game_state == "play":         
                 self.handle_enemies()
+                frame_counter += 1
+                time_counter += dt
+                if time_counter > 1:
+                    self.fps = frame_counter
+                    frame_counter = 0
+                    time_counter = 0
 
                 self.update_groups(dt)
                 self.handle_upgrade_collision()

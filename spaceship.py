@@ -81,7 +81,6 @@ class Spaceship(pg.sprite.Sprite):
 
     def update(self, dt, move_x=(0, 0), move_y=(0, 0)):
         self.handle_animation(dt, move_x)
-        print(f"fp: {self.current_weapon_damage}| fr: {self.current_fire_rate} ")
 
         self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
         if self.game.drones[0] == 0:
