@@ -29,7 +29,7 @@ class Game:
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
             "title": load_image("", "title.png", 1),
-            "life_image": load_image("", "spaceship.png", 1),
+            "live_image": load_image("", "spaceship.png", 1),
             "ship/idle": Animation(load_images("ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "ship/curve": Animation(load_images("ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
             "laser/idle": load_image("ship/weapons", "laser idle.png", 0.25),
@@ -81,10 +81,13 @@ class Game:
         self.drones_to_get = 0
         self.drones_max = 2
         self.run = True
+        self.countdown = True
         self.score = 0
         self.phase = 1
-        self.wave = 19
+        self.wave = 0
+        self.multiplicator = 1
         self.sprayer_state = 0
+        self.enemy_appearance_timer = 10
 
         self.game_state = "menu"
         self.help_site = help_site_creator(self, self.help_font)
@@ -99,6 +102,7 @@ class Game:
     def handle_upgrade_collision(self):
         for upgrade in self.upgrade_group:
             if pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask):
+                self.score += 5
                 if upgrade.upgrade_number == 0:
                     self.drones_to_get = min(self.drones_to_get + 1, self.drones_max)  # drone/s
                     if self.drones[0] == 0 or self.drones[1] == 0:
@@ -106,19 +110,19 @@ class Game:
                 elif upgrade.upgrade_number == 1:
                     self.lives += 1
                 elif upgrade.upgrade_number == 2:
-                    self.spaceship.laser_damage -= 1
-                    self.spaceship.rocket_damage -= 5
+                    self.spaceship.laser_damage = max(self.spaceship.laser_damage - 1, 5 * self.multiplicator)
+                    self.spaceship.rocket_damage = max(self.spaceship.rocket_damage - 5, 20 * self.multiplicator)
                 elif upgrade.upgrade_number == 3:
-                    self.spaceship.laser_damage += 1
-                    self.spaceship.rocket_damage += 5
+                    self.spaceship.laser_damage = min(self.spaceship.laser_damage + 1, 20 * self.multiplicator)
+                    self.spaceship.rocket_damage = min(self.spaceship.rocket_damage + 5, 100 * self.multiplicator)
                 elif upgrade.upgrade_number == 4:
-                    self.spaceship.laser_fire_rate += 0.05
-                    self.spaceship.rocket_fire_rate += 0.1
+                    self.spaceship.laser_fire_rate = min(self.spaceship.laser_fire_rate + 0.05, 1)
+                    self.spaceship.rocket_fire_rate = min(self.spaceship.rocket_fire_rate + 0.1, 2)
                 elif upgrade.upgrade_number == 5:
-                    self.spaceship.laser_fire_rate -= 0.05
-                    self.spaceship.rocket_fire_rate -= 0.1
+                    self.spaceship.laser_fire_rate = min(self.spaceship.laser_fire_rate - 0.05, 0.05)
+                    self.spaceship.rocket_fire_rate = min(self.spaceship.rocket_fire_rate - 0.1, 0.1)
                 elif upgrade.upgrade_number == 6:
-                    self.spaceship.health = 100
+                    self.spaceship.max_health += 10
                 elif upgrade.upgrade_number == 7:
                     self.spaceship.health = min(self.spaceship.health + 25, 100)
                 elif upgrade.upgrade_number == 8:
@@ -143,6 +147,12 @@ class Game:
         self.phase += 1
         self.wave = 0
         self.background_y = self.background_start_y
+        if 1 <= self.phase <= 3:
+            self.multiplicator = 1
+        elif 4 <= self.phase <= 6:
+            self.multiplicator = 2
+        elif self.phase > 6:
+            self.multiplicator = 3
 
     def handle_projectile_player_collision(self):
         for projectile in self.enemy_projectile_group:
@@ -166,11 +176,12 @@ class Game:
                     projectile.kill()
                     self.score += 10
 
-    def handle_enemies(self):
-        if self.wave != 20:
-            if len(self.enemy_group) < 1:
-                enemy_creator(self, self.enemy_group, self.phase, self.wave)
-                self.wave += 1
+    def handle_enemies(self, dt):
+        self.enemy_appearance_timer += dt
+        if len(self.enemy_group) < 1 and self.enemy_appearance_timer >= 10:
+            enemy_creator(self, self.enemy_group, self.phase, self.wave)
+            self.enemy_appearance_timer = 0
+            self.wave += 1
 
     def handle_events(self):
         for event in pg.event.get():
@@ -213,12 +224,11 @@ class Game:
             if healthbar.current_health <= 0:
                 self.healthbars.remove(healthbar)
 
-    def draw_lives(self):
-        for i in range(self.lives):
-            x_pos = 10
-            self.main_window.blit(pg.transform.scale(self.assets["life_image"], (50, 82)), (x_pos, 800 - 90 * i))
+    def move_background(self, dt):
+        self.background_y += dt * 10
+        self.background_y = min(0, self.background_y)
 
-    def handle_life_lost(self):
+    def handle_live_lost(self):
         if self.lives > 0:
             for element in self.player_group:
                 element.kill()
@@ -228,23 +238,36 @@ class Game:
         else:
             self.run = False
 
+    def draw_lives(self):
+            if self.lives < 10:
+                for i in range(self.lives):
+                    self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800 - 90 * i))
+            else:
+                self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800))
+                lives_to_render = f"x {self.lives}"
+                lives_to_blit = self.score_font.render(lives_to_render, True, (247, 247, 247))
+                self.main_window.blit(lives_to_blit, (80, 809))
+
     def draw_stats_and_score(self):
         score_to_render = f"Score: {self.score}"
         score_to_blit = self.score_font.render(score_to_render, True, (247, 247, 247))
         self.main_window.blit(score_to_blit, (200, 8))
+
         fire_power_to_render = f"FP: {self.spaceship.current_weapon_damage}"
         fire_power_to_blit = self.score_font.render(fire_power_to_render, True, (247, 247, 247))
         self.main_window.blit(fire_power_to_blit, (600, 8))
+
         fire_rate_to_render = f"FR: {round(self.spaceship.current_fire_rate, 2)}"
         fire_rate_to_blit = self.score_font.render(fire_rate_to_render, True, (247, 247, 247))
         self.main_window.blit(fire_rate_to_blit, (800, 8))
+
+        hp_to_render = f"HP: {self.spaceship.health}/{self.spaceship.max_health}"
+        hp_to_blit = self.score_font.render(hp_to_render, True, (247, 247, 247))
+        self.main_window.blit(hp_to_blit, (1000, 8))
+
         fps_to_render = f"FPS: {self.fps}"
         fps_to_blit = self.score_font.render(fps_to_render, True, (247, 247, 247))
-        self.main_window.blit(fps_to_blit, (1000, 8))
-
-    def move_background(self, dt):
-        self.background_y += dt * 10
-        self.background_y = min(0, self.background_y)
+        self.main_window.blit(fps_to_blit, (1400, 8))
 
     def draw_window(self):
         self.main_window.blit(pg.transform.scale(self.assets["title"], (1600, 900)), (0, 0))
@@ -264,6 +287,7 @@ class Game:
             self.enemy_group.draw(self.game_window)
             self.player_projectile_group.draw(self.game_window)
             self.player_group.draw(self.game_window)
+
             for effect in self.fx_list:
                 effect.draw(self.game_window)
             for healthbar in self.healthbars:
@@ -297,8 +321,7 @@ class Game:
                 if self.back_button.check_button_collision():
                     self.game_state = "menu"
 
-            elif self.game_state == "play":         
-                self.handle_enemies()
+            elif self.game_state == "play":
                 frame_counter += 1
                 time_counter += dt
                 if time_counter > 1:
@@ -306,6 +329,7 @@ class Game:
                     frame_counter = 0
                     time_counter = 0
 
+                self.handle_enemies(dt)
                 self.update_groups(dt)
                 self.handle_upgrade_collision()
                 self.handle_projectile_enemy_collision()

@@ -141,7 +141,7 @@ class Boss1(Enemy):
         self.active_laser = 0
         self.second_active_laser = 11
         self.laser_shifter = 1
-        self.upgrade_counter = 0
+        self.upgrade_time = 0
 
         self.game.spaceship.auto_fire = False
         for drone in self.game.drones:
@@ -259,7 +259,7 @@ class Boss1(Enemy):
 
     def handle_fire_modi(self, dt):
         if self.shooting_state == "shooting":
-            self.upgrade_counter += 1
+            self.upgrade_time -= dt
             self.projectile_interval_timer += dt
 
             if self.fire_mode == "all":
@@ -351,9 +351,9 @@ class Boss1(Enemy):
                 if self.shot_counter > 10:
                     self.reset_shooting()
 
-            if self.upgrade_counter >= self.multiplicator and len(self.game.upgrade_group) < 1:
+            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicator:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-                self.upgrade_counter = 0
+                self.upgrade_time = 10 * self.multiplicator
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:
@@ -410,7 +410,7 @@ class Boss2(Enemy):
         self.active_laser = 0
         self.second_active_laser = 11
         self.laser_shifter = 1
-        self.upgrade_counter = 0
+        self.upgrade_time = 0
 
         self.game.spaceship.auto_fire = False
         for drone in self.game.drones:
@@ -527,7 +527,7 @@ class Boss2(Enemy):
 
     def handle_fire_modi(self, dt):
         if self.shooting_state == "shooting":
-            self.upgrade_counter += 1
+            self.upgrade_time -= dt
             self.projectile_interval_timer += dt
 
             if self.fire_mode == "all":
@@ -619,9 +619,9 @@ class Boss2(Enemy):
                 if self.shot_counter > 10:
                     self.reset_shooting()
 
-            if self.upgrade_counter >= self.multiplicator and len(self.game.upgrade_group) < 1:
+            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicator:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-                self.upgrade_counter = 0
+                self.upgrade_time = 10 * self.multiplicator
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:
@@ -678,7 +678,7 @@ class Boss3(Enemy):
         self.active_laser = 0
         self.second_active_laser = 25
         self.laser_shifter = 1
-        self.upgrade_counter = 0
+        self.upgrade_time = 0
 
         self.game.spaceship.auto_fire = False
         for drone in self.game.drones:
@@ -795,7 +795,7 @@ class Boss3(Enemy):
 
     def handle_fire_modi(self, dt):
         if self.shooting_state == "shooting":
-            self.upgrade_counter += 1
+            self.upgrade_time -= dt
             self.projectile_interval_timer += dt
 
             if self.fire_mode == "all":
@@ -889,10 +889,9 @@ class Boss3(Enemy):
                 if self.shot_counter > 10:
                     self.reset_shooting()
 
-            if self.upgrade_counter >= self.multiplicator and len(self.game.upgrade_group) < 1:
-                self.upgrade_counter = 0
+            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicator:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-
+                self.upgrade_time = 10 * self.multiplicator
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:
