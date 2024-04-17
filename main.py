@@ -72,6 +72,7 @@ class Game:
 
         self.help_font = pg.font.SysFont("comicsans", 32)
         self.score_font = pg.font.SysFont("comicsans", 42)
+        self.get_ready_text = self.score_font.render("GET READY!", True, (247, 247, 247))
 
         self.background_start_y = -2000
         self.background_y = self.background_start_y
@@ -82,6 +83,8 @@ class Game:
         self.drones_max = 2
         self.run = True
         self.countdown = True
+        self.countdown_start_value = 3.99999
+        self.countdown_time = self.countdown_start_value
         self.score = 0
         self.phase = 1
         self.wave = 0
@@ -119,12 +122,13 @@ class Game:
                     self.spaceship.laser_fire_rate = min(self.spaceship.laser_fire_rate + 0.05, 1)
                     self.spaceship.rocket_fire_rate = min(self.spaceship.rocket_fire_rate + 0.1, 2)
                 elif upgrade.upgrade_number == 5:
-                    self.spaceship.laser_fire_rate = min(self.spaceship.laser_fire_rate - 0.05, 0.05)
-                    self.spaceship.rocket_fire_rate = min(self.spaceship.rocket_fire_rate - 0.1, 0.1)
+                    self.spaceship.laser_fire_rate = max(self.spaceship.laser_fire_rate - 0.05, 0.05)
+                    self.spaceship.rocket_fire_rate = max(self.spaceship.rocket_fire_rate - 0.1, 0.1)
                 elif upgrade.upgrade_number == 6:
                     self.spaceship.max_health += 10
+                    getattr(self.spaceship, "update_healthbar")()
                 elif upgrade.upgrade_number == 7:
-                    self.spaceship.health = min(self.spaceship.health + 25, 100)
+                    self.spaceship.health = min(self.spaceship.health + 25, self.spaceship.max_health)
                 elif upgrade.upgrade_number == 8:
                     self.spaceship.weapon = "laser"  # parallel fire
                     self.spaceship.current_weapon_damage = self.spaceship.laser_damage
@@ -144,6 +148,8 @@ class Game:
                 upgrade.kill()
 
     def proceed_level(self):
+        self.countdown = True
+        self.countdown_time = self.countdown_start_value
         self.phase += 1
         self.wave = 0
         self.background_y = self.background_start_y
@@ -188,25 +194,26 @@ class Game:
             if event.type == pg.QUIT:
                 self.run = False
 
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_UP:
-                    self.move_y[0] = 1
-                if event.key == pg.K_DOWN:
-                    self.move_y[1] = 1
-                if event.key == pg.K_LEFT:
-                    self.move_x[0] = 1
-                if event.key == pg.K_RIGHT:
-                    self.move_x[1] = 1
+            if not self.countdown:
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_UP:
+                        self.move_y[0] = 1
+                    if event.key == pg.K_DOWN:
+                        self.move_y[1] = 1
+                    if event.key == pg.K_LEFT:
+                        self.move_x[0] = 1
+                    if event.key == pg.K_RIGHT:
+                        self.move_x[1] = 1
 
-            if event.type == pg.KEYUP:
-                if event.key == pg.K_UP:
-                    self.move_y[0] = 0
-                if event.key == pg.K_DOWN:
-                    self.move_y[1] = 0
-                if event.key == pg.K_LEFT:
-                    self.move_x[0] = 0
-                if event.key == pg.K_RIGHT:
-                    self.move_x[1] = 0
+                if event.type == pg.KEYUP:
+                    if event.key == pg.K_UP:
+                        self.move_y[0] = 0
+                    if event.key == pg.K_DOWN:
+                        self.move_y[1] = 0
+                    if event.key == pg.K_LEFT:
+                        self.move_x[0] = 0
+                    if event.key == pg.K_RIGHT:
+                        self.move_x[1] = 0
 
     def update_groups(self, dt):  
         self.player_group.update(dt, self.move_x, self.move_y)
@@ -269,7 +276,18 @@ class Game:
         fps_to_blit = self.score_font.render(fps_to_render, True, (247, 247, 247))
         self.main_window.blit(fps_to_blit, (1400, 8))
 
-    def draw_window(self):
+    def show_countdown(self, dt):     
+        countdown_to_render = self.countdown_time // 1
+        countdown_to_blit = self.score_font.render(str(int(countdown_to_render)), True, (247, 247, 247))
+        self.game_window.blit(countdown_to_blit, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - countdown_to_blit.get_width() // 2, 
+                                                  stgs.GAME_WINDOW_RESOLUTION[1] // 2 - countdown_to_blit.get_height() // 2))
+        self.game_window.blit(self.get_ready_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.get_ready_text.get_width() // 2, 
+                                                    stgs.GAME_WINDOW_RESOLUTION[1] // 2 - 100 ))
+        self.countdown_time -= dt
+        if self.countdown_time <= 0:
+            self.countdown = False
+
+    def draw_window(self, dt):
         self.main_window.blit(pg.transform.scale(self.assets["title"], (1600, 900)), (0, 0))
         if self.game_state == "menu":
             self.start_button.render()
@@ -282,10 +300,13 @@ class Game:
 
             self.draw_stats_and_score()
             self.draw_lives()
-            self.upgrade_group.draw(self.game_window)
-            self.enemy_projectile_group.draw(self.game_window)
-            self.enemy_group.draw(self.game_window)
-            self.player_projectile_group.draw(self.game_window)
+            if not self.countdown:
+                self.upgrade_group.draw(self.game_window)
+                self.enemy_projectile_group.draw(self.game_window)
+                self.enemy_group.draw(self.game_window)
+                self.player_projectile_group.draw(self.game_window)
+            else:
+                self.show_countdown(dt)
             self.player_group.draw(self.game_window)
 
             for effect in self.fx_list:
@@ -328,16 +349,16 @@ class Game:
                     self.fps = frame_counter
                     frame_counter = 0
                     time_counter = 0
+                if not self.countdown:
+                    self.handle_enemies(dt)
+                    self.update_groups(dt)
+                    self.handle_upgrade_collision()
+                    self.handle_projectile_enemy_collision()
+                    self.handle_projectile_player_collision()
+                    self.move_background(dt)
+                
 
-                self.handle_enemies(dt)
-                self.update_groups(dt)
-                self.handle_upgrade_collision()
-                self.handle_projectile_enemy_collision()
-                self.handle_projectile_player_collision()
-
-                self.move_background(dt)
-
-            self.draw_window()
+            self.draw_window(dt)
 
 
 if __name__ == "__main__":

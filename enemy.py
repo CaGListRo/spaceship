@@ -148,6 +148,8 @@ class Boss1(Enemy):
             if drone != 0:
                 drone.auto_fire = False
         self.start_fight = False
+        for projectile in self.game.player_projectile_group:
+            projectile.kill()
 
     def take_damage(self, damage):
         self.health -= damage
@@ -187,7 +189,6 @@ class Boss1(Enemy):
         self.create_mask()
 
     def update(self, dt):
-        print(self.state)
         if self.state != "open":
             self.animation.update(dt)
             self.image = self.animation.get_img()

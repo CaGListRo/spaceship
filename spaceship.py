@@ -37,7 +37,13 @@ class Spaceship(pg.sprite.Sprite):
         self.current_fire_rate = self.laser_fire_rate
         self.current_weapon_damage = self.laser_damage
         self.auto_fire = True
+        self.healthbar = 0
 
+        self.update_healthbar()
+
+    def update_healthbar(self):
+        if self.healthbar != 0:
+            self.game.healthbars.remove(self.healthbar)
         self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
     def take_damage(self, damage):
@@ -45,7 +51,7 @@ class Spaceship(pg.sprite.Sprite):
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
             self.kill()
-            getattr(self.game, "handle_life_lost")()
+            getattr(self.game, "handle_live_lost")()
 
     def return_current_fire_rate(self):
         return self.current_fire_rate
