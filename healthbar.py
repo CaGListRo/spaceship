@@ -8,8 +8,8 @@ class Healthbar:
         self.img_width = image_width
         self.img_height = image_height
         self.healthbar_width = self.img_width * 0.9
-        self.healthbar_height = 10
-        self.healthbar_height_offset = self.healthbar_height if self.img_height == 0 else 0
+        self.healthbar_height = 6
+        self.healthbar_height_offset = self.healthbar_height if self.img_height == 0 else -20
         self.side_picker = -1 if self.img_height == 0 else 1
         self.center_pos = [0, 0]
         self.center_pos[0] = sprite_pos[0] + (self.img_width // 2)

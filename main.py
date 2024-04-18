@@ -64,6 +64,7 @@ class Game:
             "upgrade/image": load_images("upgrades/images", scale_factor=0.5),
             "explosion": Animation(load_images("fx/ship explosion", scale_factor=0.5), animation_duration=1, loop=False),
             "projectile_hit": Animation(load_images("fx/small explosion", scale_factor=0.5), animation_duration=0.5, loop=False),
+            "bigger_explosion": Animation(load_images("fx/small explosion", scale_factor=1), animation_duration=0.5, loop=False),
         }
         
         self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
@@ -125,7 +126,7 @@ class Game:
                     self.spaceship.laser_fire_rate = max(self.spaceship.laser_fire_rate - 0.05, 0.05)
                     self.spaceship.rocket_fire_rate = max(self.spaceship.rocket_fire_rate - 0.1, 0.1)
                 elif upgrade.upgrade_number == 6:
-                    self.spaceship.max_health += 10
+                    self.spaceship.max_health = min(self.spaceship.max_health + 10, 100 + 50 * self.multiplicator)
                     getattr(self.spaceship, "update_healthbar")()
                 elif upgrade.upgrade_number == 7:
                     self.spaceship.health = min(self.spaceship.health + 25, self.spaceship.max_health)
@@ -185,7 +186,7 @@ class Game:
     def handle_enemies(self, dt):
         self.enemy_appearance_timer += dt
         if len(self.enemy_group) < 1 and self.enemy_appearance_timer >= 10:
-            enemy_creator(self, self.enemy_group, self.phase, self.wave)
+            enemy_creator(self, self.enemy_group, self.phase, self.wave, self.multiplicator)
             self.enemy_appearance_timer = 0
             self.wave += 1
 

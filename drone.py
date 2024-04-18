@@ -81,5 +81,3 @@ class Drone(pg.sprite.Sprite):
         if self.shoot_timer > max(0.1, self.laser_fire_rate):
             PlayerProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 5))
             self.shoot_timer = 0
-                
-

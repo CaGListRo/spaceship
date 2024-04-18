@@ -1,22 +1,20 @@
 import settings as stgs
 from projectile import EnemyProjectile
 from healthbar import Healthbar
+from explosion import BiggerExplosion
+from upgrades import Upgrade
 from upgrades import Upgrade
 from icecream import ic
 
 import pygame as pg
 from random import randint, choice
+from time import time
 
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, game, ship_path, enemy_number, enemy_group, pos, phase):
+    def __init__(self, game, ship_path, enemy_number, enemy_group, pos, phase, multiplicator=1):
         super().__init__(enemy_group)
-        if 1 <= phase <= 3:
-            self.multiplicator = 1
-        elif 4 <= phase <= 6:
-            self.multiplicator = 2
-        elif phase > 6:
-            self.multiplicator = 3
+        self.multiplicator = multiplicator
         self.game = game
         self.health = enemy_number * 50 * self.multiplicator
         self.max_health = self.health
@@ -31,6 +29,8 @@ class Enemy(pg.sprite.Sprite):
         self.killed = False
 
         self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos)
+
+        # self.animated_objects = pg.sprite.Group()  # for the boss death animation
 
     def take_damage(self, damage):
         self.health -= damage
@@ -60,8 +60,8 @@ class Enemy(pg.sprite.Sprite):
         
         
 class EnemyShip1(Enemy):
-    def __init__(self, game, enemy_number, enemy_group, pos, phase):
-        super().__init__(game, "enemy1", enemy_number, enemy_group, pos, phase)
+    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicator):
+        super().__init__(game, "enemy1", enemy_number, enemy_group, pos, phase, multiplicator)
         self.shooting_timer = 1 / self.multiplicator
         self.timer = self.shooting_timer
         self.laser_damage = 20 * self.multiplicator
@@ -79,8 +79,8 @@ class EnemyShip1(Enemy):
 
 
 class EnemyShip2(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase):
-        super().__init__(game, "enemy2", enemy_number, enemy_group, pos, phase)
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
+        super().__init__(game, "enemy2", enemy_number, enemy_group, pos, phase, multiplicator)
         self.shooting_timer = 0.8 / self.multiplicator
         self.timer = self.shooting_timer
         self.laser_damage = 10 * self.multiplicator
@@ -99,8 +99,8 @@ class EnemyShip2(Enemy):
 
 
 class EnemyShip3(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase):
-        super().__init__(game, "enemy3", enemy_number, enemy_group, pos, phase)
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
+        super().__init__(game, "enemy3", enemy_number, enemy_group, pos, phase, multiplicator)
         self.shooting_timer = 2 / self.multiplicator
         self.timer = self.shooting_timer
         self.rocket_damage = 40 * self.multiplicator
@@ -118,8 +118,8 @@ class EnemyShip3(Enemy):
 
 
 class Boss1(Enemy):
-    def __init__(self, game, enemy_number, enemy_group, pos, phase):
-        super().__init__(game, "boss1", enemy_number, enemy_group, pos, phase)
+    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicator):
+        super().__init__(game, "boss1", enemy_number, enemy_group, pos, phase, multiplicator)
         self.game = game
         self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicator))
@@ -143,23 +143,64 @@ class Boss1(Enemy):
         self.laser_shifter = 1
         self.upgrade_time = 0
 
-        self.game.spaceship.auto_fire = False
-        for drone in self.game.drones:
-            if drone != 0:
-                drone.auto_fire = False
+        self.stop_autofire()
         self.start_fight = False
+
+        self.kill_projectiles()
+        self.explosion_counter = 0
+        self.explosion_timer = 1 / randint(3, 9)
+
+    def start_autofire(self):
+        if not self.game.spaceship.auto_fire:
+            self.game.spaceship.auto_fire = True
+            for drone in self.game.drones:
+                if drone != 0:
+                    drone.auto_fire = True
+
+    def stop_autofire(self):
+        if self.game.spaceship.auto_fire:
+            self.game.spaceship.auto_fire = False
+            for drone in self.game.drones:
+                if drone != 0:
+                    drone.auto_fire = False
+
+    def kill_projectiles(self):
         for projectile in self.game.player_projectile_group:
-            projectile.kill()
+                projectile.kill()
 
     def take_damage(self, damage):
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
-            self.kill()
             self.killed = True
+            self.kill_projectiles()       
+        return False
+    
+    def death_animation(self, dt):
+        self.stop_autofire()
+        mask_width, mask_height = self.enemy_mask.get_size()
+        if self.explosion_counter <= 100:
+            self.explosion_timer -= dt
+            if self.explosion_timer <= 0:
+                while True:              
+                    rand_x = randint(self.rect.left, self.rect.right)
+                    rand_y = randint(self.rect.top, self.rect.bottom)
+                    adjusted_x = rand_x - self.rect.left
+                    adjusted_y = rand_y - self.rect.top 
+                    if 0 <= adjusted_x < mask_width and 0 <= adjusted_y < mask_height:
+                        if self.mask.get_at((rand_x - self.rect.left, rand_y - self.rect.top)):
+                            explosion = BiggerExplosion(self.game, (rand_x, rand_y))
+                            self.game.fx_list.append(explosion)
+                            self.explosion_timer = 1 / randint(5, 23)
+                            self.explosion_counter += 1
+                            break
+
+        elif self.explosion_counter > 100:
+            self.kill()
             self.game.score += 50 * self.score_factor * self.multiplicator
+            Upgrade(self.game, (self.pos))
+            self.start_autofire()
             getattr(self.game, "proceed_level")()
-        return self.killed
 
     def create_mask(self):
         self.mask = pg.mask.from_surface(self.image)    
@@ -189,62 +230,61 @@ class Boss1(Enemy):
         self.create_mask()
 
     def update(self, dt):
-        if self.state != "open":
-            self.animation.update(dt)
-            self.image = self.animation.get_img()
-
-        if self.pos.y < 10:
-            self.direction.y = 1
-            self.direction.x = 0
-
-        elif self.pos.y >= 10 and self.speed_y > 0:
-            self.speed_y = max(0, self.speed_y - dt * 150)
-
-        elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+        if not self.killed:
             if self.state != "open":
-                self.state = "open"
-                self.animation = self.game.assets["boss1/" + self.state].copy()
-            self.image = self.animation.get_img()
-            self.animation.update(dt)
+                self.animation.update(dt)
+                self.image = self.animation.get_img()
 
-            if self.animation.done:
-                self.state = "idle"
-                self.handle_state(dt)
-                self.handle_image_and_mask()
-                self.start_fight = True
-            
-        elif self.pos.y >= 10 and self.start_fight:
-            if not self.game.spaceship.auto_fire:
-                self.game.spaceship.auto_fire = True
-                for drone in self.game.drones:
-                    if drone != 0:
-                        drone.auto_fire = True
-            self.direction.y = 0
-            self.handle_state(dt)
+            if self.pos.y < 10:
+                self.direction.y = 1
+                self.direction.x = 0
 
-            if self.shooting_state == "not shooting":
-                self.handle_shooting(dt)
+            elif self.pos.y >= 10 and self.speed_y > 0:
+                self.speed_y = max(0, self.speed_y - dt * 150)
+
+            elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+                if self.state != "open":
+                    self.state = "open"
+                    self.animation = self.game.assets["boss1/" + self.state].copy()
+                self.image = self.animation.get_img()
+                self.animation.update(dt)
+
+                if self.animation.done:
+                    self.state = "idle"
+                    self.handle_state(dt)
+                    self.handle_image_and_mask()
+                    self.start_fight = True
                 
-        self.pos.y += self.direction.y * self.speed_y * dt
-        self.pos.x += self.direction.x * self.speed_x * dt
+            elif self.pos.y >= 10 and self.start_fight:
+                self.start_autofire()
+                self.direction.y = 0
+                self.handle_state(dt)
 
-        if self.pos.x < 0:
-            self.pos.x = 0
-            self.direction.x *= -1
-            self.state = "right"
-            self.handle_image_and_mask()
+                if self.shooting_state == "not shooting":
+                    self.handle_shooting(dt)
+                    
+            self.pos.y += self.direction.y * self.speed_y * dt
+            self.pos.x += self.direction.x * self.speed_x * dt
 
-        if self.pos.x + self.image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
-            self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.image.get_width()
-            self.direction.x *= -1
-            self.state = "left"
-            self.handle_image_and_mask()
+            if self.pos.x < 0:
+                self.pos.x = 0
+                self.direction.x *= -1
+                self.state = "right"
+                self.handle_image_and_mask()
 
-        self.rect.x = self.pos.x
-        self.rect.y = self.pos.y
+            if self.pos.x + self.image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
+                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.image.get_width()
+                self.direction.x *= -1
+                self.state = "left"
+                self.handle_image_and_mask()
 
-        self.healthbar.update(self.health, self.pos)
-        self.handle_fire_modi(dt)
+            self.rect.x = self.pos.x
+            self.rect.y = self.pos.y
+
+            self.healthbar.update(self.health, self.pos)
+            self.handle_fire_modi(dt)
+        elif self.killed:
+            self.death_animation(dt)
 
     def handle_shooting(self, dt):
         self.shoot_timer += dt
@@ -388,8 +428,8 @@ class Boss1(Enemy):
 
 
 class Boss2(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase):
-        super().__init__(game, "boss2", enemy_number, enemy_group, pos, phase)
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
+        super().__init__(game, "boss2", enemy_number, enemy_group, pos, phase, multiplicator)
         self.game = game
         self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicator))
@@ -413,21 +453,64 @@ class Boss2(Enemy):
         self.laser_shifter = 1
         self.upgrade_time = 0
 
-        self.game.spaceship.auto_fire = False
-        for drone in self.game.drones:
-            if drone != 0:
-                drone.auto_fire = False
+        self.stop_autofire()
         self.start_fight = False
+
+        self.kill_projectiles()
+        self.explosion_counter = 0
+        self.explosion_timer = 1 / randint(3, 9)
+
+    def start_autofire(self):
+        if not self.game.spaceship.auto_fire:
+            self.game.spaceship.auto_fire = True
+            for drone in self.game.drones:
+                if drone != 0:
+                    drone.auto_fire = True
+
+    def stop_autofire(self):
+        if self.game.spaceship.auto_fire:
+            self.game.spaceship.auto_fire = False
+            for drone in self.game.drones:
+                if drone != 0:
+                    drone.auto_fire = False
+
+    def kill_projectiles(self):
+        for projectile in self.game.player_projectile_group:
+                projectile.kill()
 
     def take_damage(self, damage):
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
-            self.kill()
             self.killed = True
+            self.kill_projectiles()       
+        return False
+    
+    def death_animation(self, dt):
+        self.stop_autofire()
+        mask_width, mask_height = self.enemy_mask.get_size()
+        if self.explosion_counter <= 100:
+            self.explosion_timer -= dt
+            if self.explosion_timer <= 0:
+                while True:              
+                    rand_x = randint(self.rect.left, self.rect.right)
+                    rand_y = randint(self.rect.top, self.rect.bottom)
+                    adjusted_x = rand_x - self.rect.left
+                    adjusted_y = rand_y - self.rect.top 
+                    if 0 <= adjusted_x < mask_width and 0 <= adjusted_y < mask_height:
+                        if self.mask.get_at((rand_x - self.rect.left, rand_y - self.rect.top)):
+                            explosion = BiggerExplosion(self.game, (rand_x, rand_y))
+                            self.game.fx_list.append(explosion)
+                            self.explosion_timer = 1 / randint(5, 23)
+                            self.explosion_counter += 1
+                            break
+
+        elif self.explosion_counter > 100:
+            self.kill()
             self.game.score += 50 * self.score_factor * self.multiplicator
+            Upgrade(self.game, (self.pos))
+            self.start_autofire()
             getattr(self.game, "proceed_level")()
-        return self.killed
 
     def create_mask(self):
         self.mask = pg.mask.from_surface(self.image)    
@@ -457,62 +540,65 @@ class Boss2(Enemy):
         self.create_mask()
 
     def update(self, dt):
-        if self.state != "open":
-            self.animation.update(dt)
-            self.image = self.animation.get_img()
-
-        if self.pos.y < 10:
-            self.direction.y = 1
-            self.direction.x = 0
-
-        elif self.pos.y >= 10 and self.speed_y > 0:
-            self.speed_y = max(0, self.speed_y - dt * 150)
-
-        elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+        if not self.killed:
             if self.state != "open":
-                self.state = "open"
-                self.animation = self.game.assets["boss2/" + self.state].copy()
-            self.image = self.animation.get_img()
-            self.animation.update(dt)
+                self.animation.update(dt)
+                self.image = self.animation.get_img()
 
-            if self.animation.done:
-                self.state = "idle"
-                self.handle_state(dt)
-                self.handle_image_and_mask()
-                self.start_fight = True
-            
-        elif self.pos.y >= 10 and self.start_fight:
-            if not self.game.spaceship.auto_fire:
-                self.game.spaceship.auto_fire = True
-                for drone in self.game.drones:
-                    if drone != 0:
-                        drone.auto_fire = True
-            self.direction.y = 0
-            self.handle_state(dt)
+            if self.pos.y < 10:
+                self.direction.y = 1
+                self.direction.x = 0
 
-            if self.shooting_state == "not shooting":
-                self.handle_shooting(dt)
+            elif self.pos.y >= 10 and self.speed_y > 0:
+                self.speed_y = max(0, self.speed_y - dt * 150)
+
+            elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+                if self.state != "open":
+                    self.state = "open"
+                    self.animation = self.game.assets["boss2/" + self.state].copy()
+                self.image = self.animation.get_img()
+                self.animation.update(dt)
+
+                if self.animation.done:
+                    self.state = "idle"
+                    self.handle_state(dt)
+                    self.handle_image_and_mask()
+                    self.start_fight = True
                 
-        self.pos.y += self.direction.y * self.speed_y * dt
-        self.pos.x += self.direction.x * self.speed_x * dt
+            elif self.pos.y >= 10 and self.start_fight:
+                if not self.game.spaceship.auto_fire:
+                    self.game.spaceship.auto_fire = True
+                    for drone in self.game.drones:
+                        if drone != 0:
+                            drone.auto_fire = True
+                self.direction.y = 0
+                self.handle_state(dt)
 
-        if self.pos.x < 0:
-            self.pos.x = 0
-            self.direction.x *= -1
-            self.state = "right"
-            self.handle_image_and_mask()
+                if self.shooting_state == "not shooting":
+                    self.handle_shooting(dt)
+                    
+            self.pos.y += self.direction.y * self.speed_y * dt
+            self.pos.x += self.direction.x * self.speed_x * dt
 
-        if self.pos.x + self.image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
-            self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.image.get_width()
-            self.direction.x *= -1
-            self.state = "left"
-            self.handle_image_and_mask()
+            if self.pos.x < 0:
+                self.pos.x = 0
+                self.direction.x *= -1
+                self.state = "right"
+                self.handle_image_and_mask()
 
-        self.rect.x = self.pos.x
-        self.rect.y = self.pos.y
+            if self.pos.x + self.image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
+                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.image.get_width()
+                self.direction.x *= -1
+                self.state = "left"
+                self.handle_image_and_mask()
 
-        self.healthbar.update(self.health, self.pos)
-        self.handle_fire_modi(dt)
+            self.rect.x = self.pos.x
+            self.rect.y = self.pos.y
+
+            self.healthbar.update(self.health, self.pos)
+            self.handle_fire_modi(dt)
+        elif self.killed:
+            self.death_animation(dt)
 
     def handle_shooting(self, dt):
         self.shoot_timer += dt
@@ -656,8 +742,8 @@ class Boss2(Enemy):
 
 
 class Boss3(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase):
-        super().__init__(game, "boss3", enemy_number, enemy_group, pos, phase)
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
+        super().__init__(game, "boss3", enemy_number, enemy_group, pos, phase, multiplicator)
         self.game = game
         self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicator))
@@ -681,21 +767,64 @@ class Boss3(Enemy):
         self.laser_shifter = 1
         self.upgrade_time = 0
 
-        self.game.spaceship.auto_fire = False
-        for drone in self.game.drones:
-            if drone != 0:
-                drone.auto_fire = False
+        self.stop_autofire()
         self.start_fight = False
+
+        self.kill_projectiles()
+        self.explosion_counter = 0
+        self.explosion_timer = 1 / randint(3, 9)
+
+    def start_autofire(self):
+        if not self.game.spaceship.auto_fire:
+            self.game.spaceship.auto_fire = True
+            for drone in self.game.drones:
+                if drone != 0:
+                    drone.auto_fire = True
+
+    def stop_autofire(self):
+        if self.game.spaceship.auto_fire:
+            self.game.spaceship.auto_fire = False
+            for drone in self.game.drones:
+                if drone != 0:
+                    drone.auto_fire = False
+
+    def kill_projectiles(self):
+        for projectile in self.game.player_projectile_group:
+                projectile.kill()
 
     def take_damage(self, damage):
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
-            self.kill()
             self.killed = True
+            self.kill_projectiles()       
+        return False
+    
+    def death_animation(self, dt):
+        self.stop_autofire()
+        mask_width, mask_height = self.enemy_mask.get_size()
+        if self.explosion_counter <= 100:
+            self.explosion_timer -= dt
+            if self.explosion_timer <= 0:
+                while True:              
+                    rand_x = randint(self.rect.left, self.rect.right)
+                    rand_y = randint(self.rect.top, self.rect.bottom)
+                    adjusted_x = rand_x - self.rect.left
+                    adjusted_y = rand_y - self.rect.top 
+                    if 0 <= adjusted_x < mask_width and 0 <= adjusted_y < mask_height:
+                        if self.mask.get_at((rand_x - self.rect.left, rand_y - self.rect.top)):
+                            explosion = BiggerExplosion(self.game, (rand_x, rand_y))
+                            self.game.fx_list.append(explosion)
+                            self.explosion_timer = 1 / randint(5, 23)
+                            self.explosion_counter += 1
+                            break
+
+        elif self.explosion_counter > 100:
+            self.kill()
             self.game.score += 50 * self.score_factor * self.multiplicator
+            Upgrade(self.game, (self.pos))
+            self.start_autofire()
             getattr(self.game, "proceed_level")()
-        return self.killed
 
     def create_mask(self):
         self.mask = pg.mask.from_surface(self.image)    
@@ -725,62 +854,65 @@ class Boss3(Enemy):
         self.create_mask()
 
     def update(self, dt):
-        if self.state != "open":
-            self.animation.update(dt)
-            self.image = self.animation.get_img()
-
-        if self.pos.y < 10:
-            self.direction.y = 1
-            self.direction.x = 0
-
-        elif self.pos.y >= 10 and self.speed_y > 0:
-            self.speed_y = max(0, self.speed_y - dt * 150)
-
-        elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+        if not self.killed:
             if self.state != "open":
-                self.state = "open"
-                self.animation = self.game.assets["boss3/" + self.state].copy()
-            self.image = self.animation.get_img()
-            self.animation.update(dt)
+                self.animation.update(dt)
+                self.image = self.animation.get_img()
 
-            if self.animation.done:
-                self.state = "idle"
-                self.handle_state(dt)
-                self.handle_image_and_mask()
-                self.start_fight = True
-            
-        elif self.pos.y >= 10 and self.start_fight:
-            if not self.game.spaceship.auto_fire:
-                self.game.spaceship.auto_fire = True
-                for drone in self.game.drones:
-                    if drone != 0:
-                        drone.auto_fire = True
-            self.direction.y = 0
-            self.handle_state(dt)
+            if self.pos.y < 10:
+                self.direction.y = 1
+                self.direction.x = 0
 
-            if self.shooting_state == "not shooting":
-                self.handle_shooting(dt)
+            elif self.pos.y >= 10 and self.speed_y > 0:
+                self.speed_y = max(0, self.speed_y - dt * 150)
+
+            elif self.pos.y >= 10 and self.speed_y <= 0 and not self.start_fight:
+                if self.state != "open":
+                    self.state = "open"
+                    self.animation = self.game.assets["boss3/" + self.state].copy()
+                self.image = self.animation.get_img()
+                self.animation.update(dt)
+
+                if self.animation.done:
+                    self.state = "idle"
+                    self.handle_state(dt)
+                    self.handle_image_and_mask()
+                    self.start_fight = True
                 
-        self.pos.y += self.direction.y * self.speed_y * dt
-        self.pos.x += self.direction.x * self.speed_x * dt
+            elif self.pos.y >= 10 and self.start_fight:
+                if not self.game.spaceship.auto_fire:
+                    self.game.spaceship.auto_fire = True
+                    for drone in self.game.drones:
+                        if drone != 0:
+                            drone.auto_fire = True
+                self.direction.y = 0
+                self.handle_state(dt)
 
-        if self.pos.x < 0:
-            self.pos.x = 0
-            self.direction.x *= -1
-            self.state = "right"
-            self.handle_image_and_mask()
+                if self.shooting_state == "not shooting":
+                    self.handle_shooting(dt)
+                    
+            self.pos.y += self.direction.y * self.speed_y * dt
+            self.pos.x += self.direction.x * self.speed_x * dt
 
-        if self.pos.x + self.image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
-            self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.image.get_width()
-            self.direction.x *= -1
-            self.state = "left"
-            self.handle_image_and_mask()
+            if self.pos.x < 0:
+                self.pos.x = 0
+                self.direction.x *= -1
+                self.state = "right"
+                self.handle_image_and_mask()
 
-        self.rect.x = self.pos.x
-        self.rect.y = self.pos.y
+            if self.pos.x + self.image.get_width() > stgs.GAME_WINDOW_RESOLUTION[0]:
+                self.pos.x = stgs.GAME_WINDOW_RESOLUTION[0] - self.image.get_width()
+                self.direction.x *= -1
+                self.state = "left"
+                self.handle_image_and_mask()
 
-        self.healthbar.update(self.health, self.pos)
-        self.handle_fire_modi(dt)
+            self.rect.x = self.pos.x
+            self.rect.y = self.pos.y
+
+            self.healthbar.update(self.health, self.pos)
+            self.handle_fire_modi(dt)
+        elif self.killed:
+            self.death_animation(dt)
 
     def handle_shooting(self, dt):
         self.shoot_timer += dt
