@@ -1,8 +1,7 @@
 import settings as stgs
 from projectile import EnemyProjectile
 from healthbar import Healthbar
-from explosion import BiggerExplosion
-from upgrades import Upgrade
+from explosion import ShipExplosion, BiggerExplosion
 from upgrades import Upgrade
 from icecream import ic
 
@@ -39,6 +38,8 @@ class Enemy(pg.sprite.Sprite):
             self.kill()
             self.killed = True
             self.game.score += 50 * self.score_factor * self.multiplicator
+            Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
+            self.game.fx_list.append(ShipExplosion(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 20)))
         return self.killed
 
     def create_mask(self):

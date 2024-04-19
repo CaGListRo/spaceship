@@ -1,0 +1,10 @@
+John 100000
+Kate 90000
+Jack 80000
+Claire 70000
+Charly 60000
+Shannon 50000
+Said 40000
+Rose 30000
+Hugo 20000
+Danielle 10000

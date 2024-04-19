@@ -4,7 +4,7 @@ from upgrades import Upgrade
 from explosion import ShipExplosion, SmallExplosion
 from drone import Drone
 from enemy_creator import enemy_creator
-from utils import load_image, load_images, Animation, help_site_creator
+from utils import load_image, load_images, Animation, help_site_creator, create_highscore_screen
 from button import Button
 
 from time import time
@@ -73,7 +73,10 @@ class Game:
 
         self.help_font = pg.font.SysFont("comicsans", 32)
         self.score_font = pg.font.SysFont("comicsans", 42)
+        self.highscore_font = pg.font.SysFont("comicsans", 52)
         self.get_ready_text = self.score_font.render("GET READY!", True, (247, 247, 247))
+        self.start_text = self.score_font.render("START!", True, (247, 247, 247))
+        self.game_over_text = self.highscore_font.render("GAME OVER!", True, (247, 247, 247))
 
         self.background_start_y = -2000
         self.background_y = self.background_start_y
@@ -95,6 +98,7 @@ class Game:
 
         self.game_state = "menu"
         self.help_site = help_site_creator(self, self.help_font)
+        self.highscore_site = create_highscore_screen(self.highscore_font)
 
     def add_drones(self):
         for i, _ in enumerate(self.drones):
@@ -161,6 +165,13 @@ class Game:
         elif self.phase > 6:
             self.multiplicator = 3
 
+    def handle_enemy_player_collision(self):
+        for enemy in self.enemy_group:
+            if pg.sprite.spritecollide(enemy, self.player_group, False, pg.sprite.collide_mask):
+                # self.fx_list.append(ShipExplosion(self, (enemy.pos.x, enemy.pos.y)))
+                self.spaceship.take_damage(min(enemy.health, 50))
+                enemy.take_damage(150 * self.multiplicator)
+
     def handle_projectile_player_collision(self):
         for projectile in self.enemy_projectile_group:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False, pg.sprite.collide_mask)
@@ -177,9 +188,9 @@ class Game:
                 for sprite in overlap_sprites:
                     killed = sprite.take_damage(projectile.damage)
                     self.fx_list.append(SmallExplosion(self, (projectile.pos.x, projectile.pos.y)))
-                    if killed:
-                        Upgrade(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() // 2))
-                        self.fx_list.append(ShipExplosion(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() + 20)))
+                    # if killed:
+                        # Upgrade(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() // 2))
+                        # self.fx_list.append(ShipExplosion(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() + 20)))
                     projectile.kill()
                     self.score += 10
 
@@ -244,7 +255,7 @@ class Game:
             self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
             self.lives -= 1
         else:
-            self.run = False
+            self.game_state = "game over"
 
     def draw_lives(self):
             if self.lives < 10:
@@ -293,9 +304,16 @@ class Game:
         if self.game_state == "menu":
             self.start_button.render()
             self.help_button.render()
+            self.highscore_button.render()
+
         elif self.game_state == "help":
             self.main_window.blit(self.help_site, (0, 0))
             self.back_button.render()
+
+        elif self.game_state == "highscore":
+            self.main_window.blit(self.highscore_site, (0, 0))
+            self.back_button.render()
+
         elif self.game_state == "play":
             self.game_window.blit(self.assets["background"], (0, self.background_y))
 
@@ -317,11 +335,21 @@ class Game:
 
             pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
             self.main_window.blit(self.game_window, (195, 95))
+
+        elif self.game_state == "game over":
+            self.game_window.blit(self.assets["background"], (0, self.background_y))
+            self.game_window.blit(self.game_over_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.game_over_text.get_width() // 2,
+                                                        stgs.GAME_WINDOW_RESOLUTION[1] // 2 - self.game_over_text.get_height() // 2))
+
+            pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
+            self.main_window.blit(self.game_window, (195, 95))
+
         pg.display.update()
 
     def create_buttons(self):
         self.start_button = Button(self.main_window, "Start", (1300, 700))
-        self.help_button =  Button(self.main_window, "Help", (1300, 800))
+        self.help_button =  Button(self.main_window, "Help", (1300, 770))
+        self.highscore_button = Button(self.main_window, "Highscores", (1300, 840))
         self.back_button = Button(self.main_window, "back", (200, 800))
 
     def main(self):
@@ -339,7 +367,12 @@ class Game:
                     self.game_state = "play"
                 if self.help_button.check_button_collision():
                     self.game_state = "help"
+                if self.highscore_button.check_button_collision():
+                    self.game_state = "highscore"
             elif self.game_state == "help":
+                if self.back_button.check_button_collision():
+                    self.game_state = "menu"
+            elif self.game_state == "highscore":
                 if self.back_button.check_button_collision():
                     self.game_state = "menu"
 
@@ -356,7 +389,11 @@ class Game:
                     self.handle_upgrade_collision()
                     self.handle_projectile_enemy_collision()
                     self.handle_projectile_player_collision()
+                    self.handle_enemy_player_collision()
                     self.move_background(dt)
+
+            elif self.game_state == "game over":
+                pass
                 
 
             self.draw_window(dt)

@@ -61,3 +61,23 @@ def help_site_creator(game, font):
         surf.blit(game.assets["upgrade/background"][background_number], (50 + i * 130, 400))
         surf.blit(upgrade, (50 + i * 130, 400))
     return surf
+
+def create_highscore_screen(font):
+    surf = pg.Surface((1600, 900))
+    surf.set_colorkey("black")
+    highscore_list = []
+    with open("highscore_list.txt", "r", encoding="utf-8") as file:
+        text = file.read()
+        lines = text.splitlines()
+        for i, line in enumerate(lines):
+            word = line.split(" ")
+            number_to_render = f"{str(i+1)}."
+            number_to_blit = font.render(number_to_render, True, (247, 247, 247))
+            surf.blit(number_to_blit, (450, 100 + i * 60))
+            name_to_render = word[0]
+            name_to_blit = font.render(name_to_render, True, (247, 247, 247))
+            surf.blit(name_to_blit, (600, 100 + i * 60))
+            score_to_render = word[1]
+            score_to_blit = font.render(score_to_render, True, (247, 247, 247))
+            surf.blit(score_to_blit, (950, 100 + i * 60))
+    return surf
