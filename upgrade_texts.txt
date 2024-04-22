@@ -22,22 +22,22 @@ Gibt dir als Bewaffnung Lasersprayer mit 3 - 5 Laserstrahlen.
 
 Place up to two self-shooting drones on the side for you.
 
-Gives you an extra life.
+Gives you an extra live.
 
-Reduces your firepower.
+Reduces your firepower. (FP)
 
-Increases your firepower.
+Increases your firepower. (FP)
 
-Slows down your shot speed.
+Slows down your fire rate. (FR)
 
-Increases your shot speed.
+Increases your fire rate. (FR)
 
 Increases your maximum health by 10HP up to the phase-dependent absolute maximum health.
 
 Gives you up to 25 HP.
 
-Provides you with the starting weapon: Parallel Lasers.
+Provides you with parallel lasers. (The starting weapon)
 
 Provides rockets as weaponry.
 
-Provides Laser Sprayer as weaponry with 3 - 5 laser beams.
+Provides laser sprayer as weaponry with 3 - 5 laser beams.

@@ -29,6 +29,7 @@ class Game:
         self.assets = {
             "background": load_image("backgrounds", "00.png", 1),
             "title": load_image("", "title.png", 1),
+            "logo": load_image("", "logo.png", 1),
             "live_image": load_image("", "spaceship.png", 1),
             "ship/idle": Animation(load_images("ship/idle", scale_factor=0.25), animation_duration=0.5, loop=True),
             "ship/curve": Animation(load_images("ship/curve", scale_factor=0.25), animation_duration=0.5, loop=True),
@@ -302,9 +303,11 @@ class Game:
     def draw_window(self, dt):
         self.main_window.blit(pg.transform.scale(self.assets["title"], (1600, 900)), (0, 0))
         if self.game_state == "menu":
+            self.main_window.blit(pg.transform.scale(self.assets["logo"], (1600, 900)), (0, 0))
             self.start_button.render()
             self.help_button.render()
             self.highscore_button.render()
+            self.quit_button.render()
 
         elif self.game_state == "help":
             self.main_window.blit(self.help_site, (0, 0))
@@ -347,9 +350,10 @@ class Game:
         pg.display.update()
 
     def create_buttons(self):
-        self.start_button = Button(self.main_window, "Start", (1300, 700))
-        self.help_button =  Button(self.main_window, "Help", (1300, 770))
-        self.highscore_button = Button(self.main_window, "Highscores", (1300, 840))
+        self.start_button = Button(self.main_window, "Start", (1380, 630))
+        self.help_button =  Button(self.main_window, "Help", (1380, 700))
+        self.highscore_button = Button(self.main_window, "Highscores", (1380, 770))
+        self.quit_button = Button(self.main_window, "Quit", (1380, 840))
         self.back_button = Button(self.main_window, "back", (200, 800))
 
     def main(self):
@@ -369,6 +373,8 @@ class Game:
                     self.game_state = "help"
                 if self.highscore_button.check_button_collision():
                     self.game_state = "highscore"
+                if self.quit_button.check_button_collision():
+                    self.run = False
             elif self.game_state == "help":
                 if self.back_button.check_button_collision():
                     self.game_state = "menu"

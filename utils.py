@@ -47,6 +47,7 @@ class Animation:
             return None
         
 
+
 def help_site_creator(game, font):
     surf = pg.Surface((1600, 900))
     surf.set_colorkey("black")
@@ -61,6 +62,7 @@ def help_site_creator(game, font):
         surf.blit(game.assets["upgrade/background"][background_number], (50 + i * 130, 400))
         surf.blit(upgrade, (50 + i * 130, 400))
     return surf
+
 
 def create_highscore_screen(font):
     surf = pg.Surface((1600, 900))
