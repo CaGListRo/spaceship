@@ -82,4 +82,5 @@ def create_highscore_screen(font):
             score_to_render = word[1]
             score_to_blit = font.render(score_to_render, True, (247, 247, 247))
             surf.blit(score_to_blit, (950, 100 + i * 60))
-    return surf
+            highscore_list.append([word[0], int(word[1])])
+    return surf, highscore_list

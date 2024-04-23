@@ -22,7 +22,7 @@ class Button:
     def render(self):
         pg.draw.rect(self.surface, "black", (self.button_bottom_rect[0] - 2, self.button_bottom_rect[1] - 2, self.button_size[0] + 4, self.button_size[1] + 4), border_radius=5)
         pg.draw.rect(self.surface, self.button_bottom_color, self.button_bottom_rect, border_radius=5)
-        pg.draw.rect(self.surface, self.button_top_color, self.button_top_rect, border_radius=5)
+        pg.draw.rect(self.surface, self.button_top_color, (self.pos[0] - self.button_size[0] // 2, self.pos[1] - self.button_size[1] // 2 - self.button_offset, self.button_size[0], self.button_size[1]), border_radius=5)
         pg.draw.rect(self.surface, "black", self.button_top_rect, border_radius=5, width=2)
         button_label = self.font.render(self.text, True, "black")
         self.surface.blit(button_label, (self.pos[0] - button_label.get_width() // 2, self.pos[1] - button_label.get_height() // 2 - self.button_offset))

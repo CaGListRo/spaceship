@@ -78,11 +78,13 @@ class Game:
         self.get_ready_text = self.score_font.render("GET READY!", True, (247, 247, 247))
         self.start_text = self.score_font.render("START!", True, (247, 247, 247))
         self.game_over_text = self.highscore_font.render("GAME OVER!", True, (247, 247, 247))
+        self.enter_name_text = self.highscore_font.render("Enter your name.", True, (247, 247, 247))
+        self.player_name = ""
 
         self.background_start_y = -2000
         self.background_y = self.background_start_y
 
-        self.lives = 3
+        self.lives = 0
         self.drones = [0, 0]
         self.drones_to_get = 0
         self.drones_max = 2
@@ -98,8 +100,9 @@ class Game:
         self.enemy_appearance_timer = 10
 
         self.game_state = "menu"
+        self.game_over_timer = 0
         self.help_site = help_site_creator(self, self.help_font)
-        self.highscore_site = create_highscore_screen(self.highscore_font)
+        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscore_font)
 
     def add_drones(self):
         for i, _ in enumerate(self.drones):
@@ -202,31 +205,47 @@ class Game:
             self.enemy_appearance_timer = 0
             self.wave += 1
 
+    def check_score(self):
+        if self.score >= self.highscore_list[-1][1]:
+            self.game_state = "game over"
+        else:
+            self.game_state = "highscore"
+
     def handle_events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.run = False
 
-            if not self.countdown:
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_UP:
-                        self.move_y[0] = 1
-                    if event.key == pg.K_DOWN:
-                        self.move_y[1] = 1
-                    if event.key == pg.K_LEFT:
-                        self.move_x[0] = 1
-                    if event.key == pg.K_RIGHT:
-                        self.move_x[1] = 1
+            if self.game_state == "play":
+                if not self.countdown:
+                    if event.type == pg.KEYDOWN:
+                        if event.key == pg.K_UP:
+                            self.move_y[0] = 1
+                        if event.key == pg.K_DOWN:
+                            self.move_y[1] = 1
+                        if event.key == pg.K_LEFT:
+                            self.move_x[0] = 1
+                        if event.key == pg.K_RIGHT:
+                            self.move_x[1] = 1
 
-                if event.type == pg.KEYUP:
-                    if event.key == pg.K_UP:
-                        self.move_y[0] = 0
-                    if event.key == pg.K_DOWN:
-                        self.move_y[1] = 0
-                    if event.key == pg.K_LEFT:
-                        self.move_x[0] = 0
-                    if event.key == pg.K_RIGHT:
-                        self.move_x[1] = 0
+                    if event.type == pg.KEYUP:
+                        if event.key == pg.K_UP:
+                            self.move_y[0] = 0
+                        if event.key == pg.K_DOWN:
+                            self.move_y[1] = 0
+                        if event.key == pg.K_LEFT:
+                            self.move_x[0] = 0
+                        if event.key == pg.K_RIGHT:
+                            self.move_x[1] = 0
+            elif self.game_state == "game over":
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_BACKSPACE:
+                        self.player_name = self.player_name[0:-1]
+                    elif event.key == pg.K_RETURN:
+                        self.game_state = "highscore"
+                    else:
+                        if len(self.player_name) < 8:    
+                            self.player_name += event.unicode
 
     def update_groups(self, dt):  
         self.player_group.update(dt, self.move_x, self.move_y)
@@ -340,12 +359,20 @@ class Game:
             self.main_window.blit(self.game_window, (195, 95))
 
         elif self.game_state == "game over":
-            self.game_window.blit(self.assets["background"], (0, self.background_y))
-            self.game_window.blit(self.game_over_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.game_over_text.get_width() // 2,
-                                                        stgs.GAME_WINDOW_RESOLUTION[1] // 2 - self.game_over_text.get_height() // 2))
-
-            pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
-            self.main_window.blit(self.game_window, (195, 95))
+            if self.game_over_timer < 5:
+                self.game_window.blit(self.assets["background"], (0, self.background_y))
+                self.game_over_timer += dt
+                self.game_window.blit(self.game_over_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.game_over_text.get_width() // 2,
+                                                            stgs.GAME_WINDOW_RESOLUTION[1] // 2 - self.game_over_text.get_height() // 2))
+                pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
+                self.main_window.blit(self.game_window, (195, 95))
+            elif self.game_over_timer >= 5:
+                self.main_window.blit(self.highscore_site, (0, 0))
+                player_name_to_blit = self.highscore_font.render(self.player_name, True, (247, 247, 247))
+                pg.draw.rect(self.main_window, (247, 247, 247), (590, 740, max(30, player_name_to_blit.get_width() + 20), 80), width=3)
+                self.main_window.blit(player_name_to_blit, (600, 745))
+                self.main_window.blit(self.enter_name_text, (stgs.MAIN_WINDOW_RESOLUTION[0] // 2 - self.enter_name_text.get_width() // 2, 820))
+            
 
         pg.display.update()
 
@@ -398,8 +425,8 @@ class Game:
                     self.handle_enemy_player_collision()
                     self.move_background(dt)
 
-            elif self.game_state == "game over":
-                pass
+            elif self.game_state == "game over" and self.game_over_timer > 4.5:
+                self.check_score()
                 
 
             self.draw_window(dt)
