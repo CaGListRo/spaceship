@@ -4,7 +4,7 @@ from upgrades import Upgrade
 from explosion import ShipExplosion, SmallExplosion
 from drone import Drone
 from enemy_creator import enemy_creator
-from utils import load_image, load_images, Animation, help_site_creator, create_highscore_screen
+from utils import load_image, load_images, Animation, help_site_creator, create_highscore_screen, sort_and_write_highscore
 from button import Button
 
 from time import time
@@ -92,7 +92,7 @@ class Game:
         self.countdown = True
         self.countdown_start_value = 3.99999
         self.countdown_time = self.countdown_start_value
-        self.score = 0
+        self.score = 10000
         self.phase = 1
         self.wave = 0
         self.multiplicator = 1
@@ -242,6 +242,8 @@ class Game:
                     if event.key == pg.K_BACKSPACE:
                         self.player_name = self.player_name[0:-1]
                     elif event.key == pg.K_RETURN:
+                        sort_and_write_highscore(self.highscore_list, self.player_name, self.score)
+                        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscore_font)
                         self.game_state = "highscore"
                     else:
                         if len(self.player_name) < 8:    

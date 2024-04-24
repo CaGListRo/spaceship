@@ -84,3 +84,28 @@ def create_highscore_screen(font):
             surf.blit(score_to_blit, (950, 100 + i * 60))
             highscore_list.append([word[0], int(word[1])])
     return surf, highscore_list
+
+def sort_and_write_highscore(highscore_list, name, score):
+    highscore_list.append([str(name), int(score)])
+
+    while True:
+        bubbled = False
+        for i in range(len(highscore_list)-1):  
+            if highscore_list[i][1] < highscore_list[i+1][1]:
+                highscore_list[i+1], highscore_list[i] = highscore_list[i], highscore_list[i+1]
+                bubbled = True
+                
+        if not bubbled:
+            break
+
+    highscore_list.pop(-1)
+
+    with open("highscore_list.txt", "w", encoding="utf-8") as file:
+        for i in range(10):
+            for j in range(2):
+                
+                file.write(str(highscore_list[i][j]))
+                if j == 0:
+                    file.write(" ")
+                if j == 1:
+                    file.write("\n")
