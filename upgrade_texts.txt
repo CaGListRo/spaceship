@@ -1,28 +1,7 @@
-Stellt dir eine, von maximal zwei, selbstschießende Dronen and die Seite.
+Place up to two self-shooting 
+drones on your side for you.
 
-Gibt dir ein extra Leben.
-
-Reduziert deine Feuerkraft.
-
-Erhöhr deine Feuerkraft.
-
-Verlangsamt deine Schußgeschwindigkeit.
-
-Erhöht deine Schußgeschwindigkeit.
-
-Erhöht deine maximale Gesundheit um 10HP bis zur phasenabhängigen absoluten maximalen Gesundheit.
-
-Gibt dir bis zu 25 HP.
-
-Gibt dir die Startbewaffnung: Parallellasers.
-
-Gibt dir als Bewaffnung Raketen.
-
-Gibt dir als Bewaffnung Lasersprayer mit 3 - 5 Laserstrahlen.
-
-Place up to two self-shooting drones on the side for you.
-
-Gives you an extra live.
+Gives you an extra life.
 
 Reduces your firepower. (FP)
 
@@ -32,12 +11,16 @@ Slows down your fire rate. (FR)
 
 Increases your fire rate. (FR)
 
-Increases your maximum health by 10HP up to the phase-dependent absolute maximum health.
+Increases your maximum health by 10HP 
+up to the phase-dependent absolute 
+maximum health.
 
 Gives you up to 25 HP.
 
-Provides you with parallel lasers. (The starting weapon)
+Provides you with parallel lasers. 
+(The starting weapon)
 
 Provides rockets as weaponry.
 
-Provides laser sprayer as weaponry with 3 - 5 laser beams.
+Provides laser sprayer as weaponry 
+with 3 - 5 laser beams.

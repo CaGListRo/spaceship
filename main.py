@@ -1,10 +1,9 @@
 import settings as stgs
 from spaceship import Spaceship
-from upgrades import Upgrade
-from explosion import ShipExplosion, SmallExplosion
+from explosion import SmallExplosion
 from drone import Drone
 from enemy_creator import enemy_creator
-from utils import load_image, load_images, Animation, help_site_creator, create_highscore_screen, sort_and_write_highscore
+from utils import load_image, load_images, create_highscore_screen, sort_and_write_highscore, Animation, Helpsite
 from button import Button
 
 from time import time
@@ -72,7 +71,7 @@ class Game:
         self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
         self.move_x, self.move_y = [0, 0], [0, 0]
 
-        self.help_font = pg.font.SysFont("comicsans", 32)
+        
         self.score_font = pg.font.SysFont("comicsans", 42)
         self.highscore_font = pg.font.SysFont("comicsans", 52)
         self.get_ready_text = self.score_font.render("GET READY!", True, (247, 247, 247))
@@ -84,7 +83,7 @@ class Game:
         self.background_start_y = -2000
         self.background_y = self.background_start_y
 
-        self.lives = 0
+        self.lives = 3
         self.drones = [0, 0]
         self.drones_to_get = 0
         self.drones_max = 2
@@ -92,7 +91,7 @@ class Game:
         self.countdown = True
         self.countdown_start_value = 3.99999
         self.countdown_time = self.countdown_start_value
-        self.score = 10000
+        self.score = 0
         self.phase = 1
         self.wave = 0
         self.multiplicator = 1
@@ -101,7 +100,7 @@ class Game:
 
         self.game_state = "menu"
         self.game_over_timer = 0
-        self.help_site = help_site_creator(self, self.help_font)
+        self.help_site = Helpsite(self)
         self.highscore_site, self.highscore_list = create_highscore_screen(self.highscore_font)
 
     def add_drones(self):
@@ -331,7 +330,7 @@ class Game:
             self.quit_button.render()
 
         elif self.game_state == "help":
-            self.main_window.blit(self.help_site, (0, 0))
+            self.help_site.render(self.main_window)
             self.back_button.render()
 
         elif self.game_state == "highscore":
@@ -405,6 +404,7 @@ class Game:
                 if self.quit_button.check_button_collision():
                     self.run = False
             elif self.game_state == "help":
+                self.help_site.update()
                 if self.back_button.check_button_collision():
                     self.game_state = "menu"
             elif self.game_state == "highscore":
