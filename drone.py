@@ -6,8 +6,8 @@ import pygame as pg
 
 
 class Drone(pg.sprite.Sprite):
-    def __init__(self, game, player_group, projectile_group, side):
-        super().__init__(player_group)
+    def __init__(self, game, drone_group, projectile_group, side):
+        super().__init__(drone_group)
         self.game = game
         self.player_projectile_group = projectile_group
         self.state = "idle"

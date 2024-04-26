@@ -18,6 +18,7 @@ class Game:
         self.fps = 0
 
         self.player_group = pg.sprite.Group()
+        self.drone_group = pg.sprite.Group()
         self.player_projectile_group = pg.sprite.Group()
         self.enemy_group = pg.sprite.Group()
         self.enemy_projectile_group = pg.sprite.Group()
@@ -75,6 +76,7 @@ class Game:
         self.score_font = pg.font.SysFont("comicsans", 42)
         self.highscore_font = pg.font.SysFont("comicsans", 52)
         self.get_ready_text = self.score_font.render("GET READY!", True, (247, 247, 247))
+        self.fight_text = self.score_font.render("FIGHT!", True, (247, 247, 247))
         self.start_text = self.score_font.render("START!", True, (247, 247, 247))
         self.game_over_text = self.highscore_font.render("GAME OVER!", True, (247, 247, 247))
         self.enter_name_text = self.highscore_font.render("Enter your name.", True, (247, 247, 247))
@@ -108,7 +110,7 @@ class Game:
             if self.drones[i] == 0 and self.drones_to_get > 0:
                 self.drones_to_get -= 1
                 side_picker = -1 if i == 0 else 1
-                self.drones[i] = Drone(self, self.player_group, self.player_projectile_group, side_picker)
+                self.drones[i] = Drone(self, self.drone_group, self.player_projectile_group, side_picker)
 
     def handle_upgrade_collision(self):
         for upgrade in self.upgrade_group:
@@ -168,10 +170,18 @@ class Game:
         elif self.phase > 6:
             self.multiplicator = 3
 
+    def handle_enemy_drone_collision(self):
+        for enemy in self.enemy_group:
+            overlap = pg.sprite.spritecollide(enemy, self.drone_group, False, pg.sprite.collide_mask)
+            if overlap:
+                print("test")
+                for collided_drone in overlap:
+                    collided_drone.take_damage(min(enemy.health, 50))
+                    enemy.take_damage(50 * self.multiplicator)
+
     def handle_enemy_player_collision(self):
         for enemy in self.enemy_group:
             if pg.sprite.spritecollide(enemy, self.player_group, False, pg.sprite.collide_mask):
-                # self.fx_list.append(ShipExplosion(self, (enemy.pos.x, enemy.pos.y)))
                 self.spaceship.take_damage(min(enemy.health, 50))
                 enemy.take_damage(150 * self.multiplicator)
 
@@ -189,11 +199,8 @@ class Game:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
                 for sprite in overlap_sprites:
-                    killed = sprite.take_damage(projectile.damage)
+                    sprite.take_damage(projectile.damage)
                     self.fx_list.append(SmallExplosion(self, (projectile.pos.x, projectile.pos.y)))
-                    # if killed:
-                        # Upgrade(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() // 2))
-                        # self.fx_list.append(ShipExplosion(self, (sprite.pos.x + sprite.image.get_width() // 2, sprite.pos.y + sprite.image.get_height() + 20)))
                     projectile.kill()
                     self.score += 10
 
@@ -250,6 +257,7 @@ class Game:
 
     def update_groups(self, dt):  
         self.player_group.update(dt, self.move_x, self.move_y)
+        self.drone_group.update(dt)
         self.player_projectile_group.update(dt)
         self.enemy_projectile_group.update(dt)
         self.enemy_group.update(dt)
@@ -270,8 +278,8 @@ class Game:
 
     def handle_live_lost(self):
         if self.lives > 0:
-            for element in self.player_group:
-                element.kill()
+            for element in self.drone_group:
+                element.take_damage(555)
             self.drones = [0, 0]
             self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
             self.lives -= 1
@@ -311,11 +319,15 @@ class Game:
 
     def show_countdown(self, dt):     
         countdown_to_render = self.countdown_time // 1
-        countdown_to_blit = self.score_font.render(str(int(countdown_to_render)), True, (247, 247, 247))
-        self.game_window.blit(countdown_to_blit, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - countdown_to_blit.get_width() // 2, 
-                                                  stgs.GAME_WINDOW_RESOLUTION[1] // 2 - countdown_to_blit.get_height() // 2))
-        self.game_window.blit(self.get_ready_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.get_ready_text.get_width() // 2, 
-                                                    stgs.GAME_WINDOW_RESOLUTION[1] // 2 - 100 ))
+        if self.countdown_time >= 1:
+            countdown_to_blit = self.score_font.render(str(int(countdown_to_render)), True, (247, 247, 247))
+            self.game_window.blit(countdown_to_blit, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - countdown_to_blit.get_width() // 2, 
+                                                    stgs.GAME_WINDOW_RESOLUTION[1] // 2 - countdown_to_blit.get_height() // 2))
+            self.game_window.blit(self.get_ready_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.get_ready_text.get_width() // 2, 
+                                                        stgs.GAME_WINDOW_RESOLUTION[1] // 2 - 100 ))
+        else:
+            self.game_window.blit(self.fight_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.fight_text.get_width() // 2, 
+                                                        stgs.GAME_WINDOW_RESOLUTION[1] // 2 - self.fight_text.get_height() // 2))
         self.countdown_time -= dt
         if self.countdown_time <= 0:
             self.countdown = False
@@ -350,6 +362,7 @@ class Game:
             else:
                 self.show_countdown(dt)
             self.player_group.draw(self.game_window)
+            self.drone_group.draw(self.game_window)
 
             for effect in self.fx_list:
                 effect.draw(self.game_window)
@@ -425,6 +438,7 @@ class Game:
                     self.handle_projectile_enemy_collision()
                     self.handle_projectile_player_collision()
                     self.handle_enemy_player_collision()
+                    self.handle_enemy_drone_collision()
                     self.move_background(dt)
 
             elif self.game_state == "game over" and self.game_over_timer > 4.5:
