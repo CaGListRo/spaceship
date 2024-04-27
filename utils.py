@@ -1,3 +1,5 @@
+import settings as stgs
+
 import os
 import pygame as pg
 from random import randint
@@ -100,7 +102,7 @@ class Helpsite:
         self.surface = pg.Surface((1600, 900))
         self.surface.fill((111, 111, 111))
         self.surface.set_colorkey((111, 111, 111))
-        self.text_surf = pg.Surface((500, 150))
+        self.text_surf = pg.Surface((530, 150))
         self.text_surf.fill((111, 111, 111))
         self.text_surf.set_colorkey((111, 111, 111))
         self.mouse_pos = pg.mouse.get_pos()
@@ -168,6 +170,9 @@ class Helpsite:
     def render(self, surf):
         
         if self.text_number != -1:
+            if self.mouse_pos[0] + self.text_surf.get_width() > stgs.MAIN_WINDOW_RESOLUTION[0]:
+                
+                self.mouse_pos = (stgs.MAIN_WINDOW_RESOLUTION[0] - self.text_surf.get_width(), self.mouse_pos[1])
             self.surface.blit(self.text_surf, self.mouse_pos)
         surf.blit(self.surface, (0, 0))
         
