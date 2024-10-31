@@ -15,18 +15,18 @@ class Game:
         pg.init()
         self.main_window = pg.display.set_mode(stgs.MAIN_WINDOW_RESOLUTION)
         self.game_window = pg.Surface(stgs.GAME_WINDOW_RESOLUTION)
-        self.fps = 0
+        self.fps: int = 0
 
-        self.player_group = pg.sprite.Group()
-        self.drone_group = pg.sprite.Group()
-        self.player_projectile_group = pg.sprite.Group()
-        self.enemy_group = pg.sprite.Group()
-        self.enemy_projectile_group = pg.sprite.Group()
-        self.upgrade_group = pg.sprite.Group()
-        self.fx_list = []
-        self.healthbars = []
+        self.player_group: pg.sprite.Group = pg.sprite.Group()
+        self.drone_group: pg.sprite.Group = pg.sprite.Group()
+        self.player_projectile_group: pg.sprite.Group = pg.sprite.Group()
+        self.enemy_group: pg.sprite.Group = pg.sprite.Group()
+        self.enemy_projectile_group: pg.sprite.Group = pg.sprite.Group()
+        self.upgrade_group: pg.sprite.Group = pg.sprite.Group()
+        self.fx_list: list[object] = []
+        self.healthbars: list[object] = []
 
-        self.assets = {
+        self.assets: dict[function | object] = {
             "background": load_image("backgrounds", "00.png", 1),
             "title": load_image("", "title.png", 1),
             "logo": load_image("", "logo.png", 1),
@@ -68,51 +68,52 @@ class Game:
             "bigger_explosion": Animation(load_images("fx/small explosion", scale_factor=1), animation_duration=0.5, loop=False),
         }
         
-        self.player_pos = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
+        self.player_pos: tuple[int] = (stgs.GAME_WINDOW_RESOLUTION[0] // 2, stgs.GAME_WINDOW_RESOLUTION[1] // 5 * 4)
         self.spaceship = Spaceship(self, self.player_group, self.player_projectile_group, self.player_pos)
-        self.move_x, self.move_y = [0, 0], [0, 0]
+        self.move_x: list[int] = [0, 0]
+        self.move_y: list[int] = [0, 0]
 
         
-        self.score_font = pg.font.SysFont("comicsans", 42)
-        self.highscore_font = pg.font.SysFont("comicsans", 52)
-        self.get_ready_text = self.score_font.render("GET READY!", True, (247, 247, 247))
-        self.fight_text = self.score_font.render("FIGHT!", True, (247, 247, 247))
-        self.start_text = self.score_font.render("START!", True, (247, 247, 247))
-        self.game_over_text = self.highscore_font.render("GAME OVER!", True, (247, 247, 247))
-        self.enter_name_text = self.highscore_font.render("Enter your name.", True, (247, 247, 247))
-        self.player_name = ""
+        self.score_font: pg.font.Font = pg.font.SysFont("comicsans", 42)
+        self.highscores_font: pg.font.Font = pg.font.SysFont("comicsans", 52)
+        self.get_ready_text: pg.Surface = self.score_font.render("GET READY!", True, (247, 247, 247))
+        self.fight_text: pg.Surface = self.score_font.render("FIGHT!", True, (247, 247, 247))
+        self.start_text: pg.Surface = self.score_font.render("START!", True, (247, 247, 247))
+        self.game_over_text: pg.Surface = self.highscores_font.render("GAME OVER!", True, (247, 247, 247))
+        self.enter_name_text: pg.Surface = self.highscores_font.render("Enter your name.", True, (247, 247, 247))
+        self.player_name: str = ""
 
-        self.background_start_y = -2000
-        self.background_y = self.background_start_y
+        self.background_start_y: int = -2000
+        self.background_y: int = self.background_start_y
 
-        self.lives = 3
-        self.drones = [0, 0]
-        self.drones_to_get = 0
-        self.drones_max = 2
-        self.run = True
-        self.countdown = True
-        self.countdown_start_value = 3.99999
-        self.countdown_time = self.countdown_start_value
-        self.score = 0
-        self.phase = 1
-        self.wave = 0
-        self.multiplicator = 1
-        self.sprayer_state = 0
-        self.enemy_appearance_timer = 10
+        self.lives: int = 3
+        self.drones: list[int] = [0, 0]
+        self.drones_to_get: int = 0
+        self.drones_max: int = 2
+        self.run: bool = True
+        self.countdown: bool = True
+        self.countdown_start_value: float = 3.99999
+        self.countdown_time: float = self.countdown_start_value
+        self.score: int = 0
+        self.phase: int = 1
+        self.wave: int = 0
+        self.multiplicand: int = 1
+        self.sprayer_state: int = 0
+        self.enemy_appearance_timer: int | float = 10
 
-        self.game_state = "menu"
-        self.game_over_timer = 0
+        self.game_state: str = "menu"
+        self.game_over_timer: int | float = 0
         self.help_site = Helpsite(self)
-        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscore_font)
+        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscores_font)
 
-    def add_drones(self):
+    def add_drones(self) -> None:
         for i, _ in enumerate(self.drones):
             if self.drones[i] == 0 and self.drones_to_get > 0:
                 self.drones_to_get -= 1
                 side_picker = -1 if i == 0 else 1
                 self.drones[i] = Drone(self, self.drone_group, self.player_projectile_group, side_picker)
 
-    def handle_upgrade_collision(self):
+    def handle_upgrade_collision(self) -> None:
         for upgrade in self.upgrade_group:
             if pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask):
                 self.score += 5
@@ -123,11 +124,11 @@ class Game:
                 elif upgrade.upgrade_number == 1:
                     self.lives += 1
                 elif upgrade.upgrade_number == 2:
-                    self.spaceship.laser_damage = max(self.spaceship.laser_damage - 1, 5 * self.multiplicator)
-                    self.spaceship.rocket_damage = max(self.spaceship.rocket_damage - 5, 20 * self.multiplicator)
+                    self.spaceship.laser_damage = max(self.spaceship.laser_damage - 1, 5 * self.multiplicand)
+                    self.spaceship.rocket_damage = max(self.spaceship.rocket_damage - 5, 20 * self.multiplicand)
                 elif upgrade.upgrade_number == 3:
-                    self.spaceship.laser_damage = min(self.spaceship.laser_damage + 1, 20 * self.multiplicator)
-                    self.spaceship.rocket_damage = min(self.spaceship.rocket_damage + 5, 100 * self.multiplicator)
+                    self.spaceship.laser_damage = min(self.spaceship.laser_damage + 1, 20 * self.multiplicand)
+                    self.spaceship.rocket_damage = min(self.spaceship.rocket_damage + 5, 100 * self.multiplicand)
                 elif upgrade.upgrade_number == 4:
                     self.spaceship.laser_fire_rate = min(self.spaceship.laser_fire_rate + 0.05, 1)
                     self.spaceship.rocket_fire_rate = min(self.spaceship.rocket_fire_rate + 0.1, 2)
@@ -135,7 +136,7 @@ class Game:
                     self.spaceship.laser_fire_rate = max(self.spaceship.laser_fire_rate - 0.05, 0.05)
                     self.spaceship.rocket_fire_rate = max(self.spaceship.rocket_fire_rate - 0.1, 0.1)
                 elif upgrade.upgrade_number == 6:
-                    self.spaceship.max_health = min(self.spaceship.max_health + 10, 100 + 50 * self.multiplicator)
+                    self.spaceship.max_health = min(self.spaceship.max_health + 10, 100 + 50 * self.multiplicand)
                     getattr(self.spaceship, "update_healthbar")()
                 elif upgrade.upgrade_number == 7:
                     self.spaceship.health = min(self.spaceship.health + 25, self.spaceship.max_health)
@@ -157,35 +158,35 @@ class Game:
 
                 upgrade.kill()
 
-    def proceed_level(self):
+    def proceed_level(self) -> None:
         self.countdown = True
         self.countdown_time = self.countdown_start_value
         self.phase += 1
         self.wave = 0
         self.background_y = self.background_start_y
         if 1 <= self.phase <= 3:
-            self.multiplicator = 1
+            self.multiplicand = 1
         elif 4 <= self.phase <= 6:
-            self.multiplicator = 2
+            self.multiplicand = 2
         elif self.phase > 6:
-            self.multiplicator = 3
+            self.multiplicand = 3
 
-    def handle_enemy_drone_collision(self):
+    def handle_enemy_drone_collision(self) -> None:
         for enemy in self.enemy_group:
             overlap = pg.sprite.spritecollide(enemy, self.drone_group, False, pg.sprite.collide_mask)
             if overlap:
                 print("test")
                 for collided_drone in overlap:
                     collided_drone.take_damage(min(enemy.health, 50))
-                    enemy.take_damage(50 * self.multiplicator)
+                    enemy.take_damage(50 * self.multiplicand)
 
-    def handle_enemy_player_collision(self):
+    def handle_enemy_player_collision(self) -> None:
         for enemy in self.enemy_group:
             if pg.sprite.spritecollide(enemy, self.player_group, False, pg.sprite.collide_mask):
                 self.spaceship.take_damage(min(enemy.health, 50))
-                enemy.take_damage(150 * self.multiplicator)
+                enemy.take_damage(150 * self.multiplicand)
 
-    def handle_projectile_player_collision(self):
+    def handle_projectile_player_collision(self) -> None:
         for projectile in self.enemy_projectile_group:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
@@ -194,7 +195,7 @@ class Game:
                     sprite.take_damage(projectile.damage)
                     projectile.kill()
 
-    def handle_projectile_enemy_collision(self):
+    def handle_projectile_enemy_collision(self) -> None:
         for projectile in self.player_projectile_group:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
@@ -204,20 +205,20 @@ class Game:
                     projectile.kill()
                     self.score += 10
 
-    def handle_enemies(self, dt):
+    def handle_enemies(self, dt: float) -> None:
         self.enemy_appearance_timer += dt
         if len(self.enemy_group) < 1 and self.enemy_appearance_timer >= 10:
-            enemy_creator(self, self.enemy_group, self.phase, self.wave, self.multiplicator)
+            enemy_creator(self, self.enemy_group, self.phase, self.wave, self.multiplicand)
             self.enemy_appearance_timer = 0
             self.wave += 1
 
-    def check_score(self):
+    def check_score(self) -> None:
         if self.score >= self.highscore_list[-1][1]:
             self.game_state = "game over"
         else:
             self.game_state = "highscore"
 
-    def handle_events(self):
+    def handle_events(self) -> None:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.run = False
@@ -243,19 +244,20 @@ class Game:
                             self.move_x[0] = 0
                         if event.key == pg.K_RIGHT:
                             self.move_x[1] = 0
+                            
             elif self.game_state == "game over":
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_BACKSPACE:
                         self.player_name = self.player_name[0:-1]
                     elif event.key == pg.K_RETURN:
                         sort_and_write_highscore(self.highscore_list, self.player_name, self.score)
-                        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscore_font)
+                        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscores_font)
                         self.game_state = "highscore"
                     else:
                         if len(self.player_name) < 8:    
                             self.player_name += event.unicode
 
-    def update_groups(self, dt):  
+    def update_groups(self, dt: float) -> None:  
         self.player_group.update(dt, self.move_x, self.move_y)
         self.drone_group.update(dt)
         self.player_projectile_group.update(dt)
@@ -272,11 +274,11 @@ class Game:
             if healthbar.current_health <= 0:
                 self.healthbars.remove(healthbar)
 
-    def move_background(self, dt):
+    def move_background(self, dt: float) -> None:
         self.background_y += dt * 10
         self.background_y = min(0, self.background_y)
 
-    def handle_live_lost(self):
+    def handle_live_lost(self) -> None:
         if self.lives > 0:
             for element in self.drone_group:
                 element.take_damage(555)
@@ -286,7 +288,7 @@ class Game:
         else:
             self.game_state = "game over"
 
-    def draw_lives(self):
+    def draw_lives(self) -> None:
             if self.lives < 10:
                 for i in range(self.lives):
                     self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800 - 90 * i))
@@ -296,31 +298,31 @@ class Game:
                 lives_to_blit = self.score_font.render(lives_to_render, True, (247, 247, 247))
                 self.main_window.blit(lives_to_blit, (80, 809))
 
-    def draw_stats_and_score(self):
-        score_to_render = f"Score: {self.score}"
-        score_to_blit = self.score_font.render(score_to_render, True, (247, 247, 247))
+    def draw_stats_and_score(self) -> None:
+        score_to_render: str = f"Score: {self.score}"
+        score_to_blit: pg.Surface = self.score_font.render(score_to_render, True, (247, 247, 247))
         self.main_window.blit(score_to_blit, (200, 8))
 
-        fire_power_to_render = f"FP: {self.spaceship.current_weapon_damage}"
-        fire_power_to_blit = self.score_font.render(fire_power_to_render, True, (247, 247, 247))
+        fire_power_to_render: str = f"FP: {self.spaceship.current_weapon_damage}"
+        fire_power_to_blit: pg.Surface = self.score_font.render(fire_power_to_render, True, (247, 247, 247))
         self.main_window.blit(fire_power_to_blit, (600, 8))
 
-        fire_rate_to_render = f"FR: {round(self.spaceship.current_fire_rate, 2)}"
-        fire_rate_to_blit = self.score_font.render(fire_rate_to_render, True, (247, 247, 247))
+        fire_rate_to_render: str = f"FR: {round(self.spaceship.current_fire_rate, 2)}"
+        fire_rate_to_blit: pg.Surface = self.score_font.render(fire_rate_to_render, True, (247, 247, 247))
         self.main_window.blit(fire_rate_to_blit, (800, 8))
 
-        hp_to_render = f"HP: {self.spaceship.health}/{self.spaceship.max_health}"
-        hp_to_blit = self.score_font.render(hp_to_render, True, (247, 247, 247))
+        hp_to_render: str = f"HP: {self.spaceship.health}/{self.spaceship.max_health}"
+        hp_to_blit: pg.Surface = self.score_font.render(hp_to_render, True, (247, 247, 247))
         self.main_window.blit(hp_to_blit, (1000, 8))
 
-        fps_to_render = f"FPS: {self.fps}"
-        fps_to_blit = self.score_font.render(fps_to_render, True, (247, 247, 247))
+        fps_to_render: str = f"FPS: {self.fps}"
+        fps_to_blit: pg.Surface = self.score_font.render(fps_to_render, True, (247, 247, 247))
         self.main_window.blit(fps_to_blit, (1400, 8))
 
-    def show_countdown(self, dt):     
+    def show_countdown(self, dt: float) -> None:     
         countdown_to_render = self.countdown_time // 1
         if self.countdown_time >= 1:
-            countdown_to_blit = self.score_font.render(str(int(countdown_to_render)), True, (247, 247, 247))
+            countdown_to_blit: pg.Surface = self.score_font.render(str(int(countdown_to_render)), True, (247, 247, 247))
             self.game_window.blit(countdown_to_blit, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - countdown_to_blit.get_width() // 2, 
                                                     stgs.GAME_WINDOW_RESOLUTION[1] // 2 - countdown_to_blit.get_height() // 2))
             self.game_window.blit(self.get_ready_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.get_ready_text.get_width() // 2, 
@@ -332,7 +334,7 @@ class Game:
         if self.countdown_time <= 0:
             self.countdown = False
 
-    def draw_window(self, dt):
+    def draw_window(self, dt: float) -> None:
         self.main_window.blit(pg.transform.scale(self.assets["title"], (1600, 900)), (0, 0))
         if self.game_state == "menu":
             self.main_window.blit(pg.transform.scale(self.assets["logo"], (1600, 900)), (0, 0))
@@ -382,7 +384,7 @@ class Game:
                 self.main_window.blit(self.game_window, (195, 95))
             elif self.game_over_timer >= 5:
                 self.main_window.blit(self.highscore_site, (0, 0))
-                player_name_to_blit = self.highscore_font.render(self.player_name, True, (247, 247, 247))
+                player_name_to_blit = self.highscores_font.render(self.player_name, True, (247, 247, 247))
                 pg.draw.rect(self.main_window, (247, 247, 247), (590, 740, max(30, player_name_to_blit.get_width() + 20), 80), width=3)
                 self.main_window.blit(player_name_to_blit, (600, 745))
                 self.main_window.blit(self.enter_name_text, (stgs.MAIN_WINDOW_RESOLUTION[0] // 2 - self.enter_name_text.get_width() // 2, 820))
@@ -390,14 +392,14 @@ class Game:
 
         pg.display.update()
 
-    def create_buttons(self):
+    def create_buttons(self) -> None:
         self.start_button = Button(self.main_window, "Start", (1380, 630))
         self.help_button =  Button(self.main_window, "Help", (1380, 700))
         self.highscore_button = Button(self.main_window, "Highscores", (1380, 770))
         self.quit_button = Button(self.main_window, "Quit", (1380, 840))
         self.back_button = Button(self.main_window, "back", (200, 800))
 
-    def main(self):
+    def main(self) -> None:
         frame_counter = 0
         time_counter = 0
         self.create_buttons()

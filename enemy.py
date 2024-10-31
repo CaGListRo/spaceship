@@ -11,11 +11,11 @@ from time import time
 
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, game, ship_path, enemy_number, enemy_group, pos, phase, multiplicator=1):
+    def __init__(self, game, ship_path, enemy_number, enemy_group, pos, phase, multiplicand=1):
         super().__init__(enemy_group)
-        self.multiplicator = multiplicator
+        self.multiplicand = multiplicand
         self.game = game
-        self.health = enemy_number * 50 * self.multiplicator
+        self.health = enemy_number * 50 * self.multiplicand
         self.max_health = self.health
         self.score_factor = enemy_number
         self.animation = self.game.assets[ship_path + "/idle"].copy()
@@ -37,7 +37,7 @@ class Enemy(pg.sprite.Sprite):
         if self.health <= 0:
             self.kill()
             self.killed = True
-            self.game.score += 50 * self.score_factor * self.multiplicator
+            self.game.score += 50 * self.score_factor * self.multiplicand
             Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
             self.game.fx_list.append(ShipExplosion(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 20)))
         return self.killed
@@ -61,11 +61,11 @@ class Enemy(pg.sprite.Sprite):
         
         
 class EnemyShip1(Enemy):
-    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicator):
-        super().__init__(game, "enemy1", enemy_number, enemy_group, pos, phase, multiplicator)
-        self.shooting_timer = 1 / self.multiplicator
+    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicand):
+        super().__init__(game, "enemy1", enemy_number, enemy_group, pos, phase, multiplicand)
+        self.shooting_timer = 1 / self.multiplicand
         self.timer = self.shooting_timer
-        self.laser_damage = 20 * self.multiplicator
+        self.laser_damage = 20 * self.multiplicand
     
     def update(self, dt):
         super().update(dt)
@@ -75,16 +75,16 @@ class EnemyShip1(Enemy):
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
-            if randint(1, 100) > 80 / self.multiplicator:
+            if randint(1, 100) > 80 / self.multiplicand:
                 EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10), "red")
 
 
 class EnemyShip2(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
-        super().__init__(game, "enemy2", enemy_number, enemy_group, pos, phase, multiplicator)
-        self.shooting_timer = 0.8 / self.multiplicator
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
+        super().__init__(game, "enemy2", enemy_number, enemy_group, pos, phase, multiplicand)
+        self.shooting_timer = 0.8 / self.multiplicand
         self.timer = self.shooting_timer
-        self.laser_damage = 10 * self.multiplicator
+        self.laser_damage = 10 * self.multiplicand
     
     def update(self, dt):
         super().update(dt)
@@ -94,17 +94,17 @@ class EnemyShip2(Enemy):
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
-            if randint(1, 100) > 80 / self.multiplicator:
+            if randint(1, 100) > 80 / self.multiplicand:
                 EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2 - 10, self.pos.y + self.image.get_height() + 10), "green")
                 EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), "green")
 
 
 class EnemyShip3(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
-        super().__init__(game, "enemy3", enemy_number, enemy_group, pos, phase, multiplicator)
-        self.shooting_timer = 2 / self.multiplicator
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
+        super().__init__(game, "enemy3", enemy_number, enemy_group, pos, phase, multiplicand)
+        self.shooting_timer = 2 / self.multiplicand
         self.timer = self.shooting_timer
-        self.rocket_damage = 40 * self.multiplicator
+        self.rocket_damage = 40 * self.multiplicand
 
     def update(self, dt):
         super().update(dt)
@@ -114,26 +114,26 @@ class EnemyShip3(Enemy):
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
-            if randint(1, 100) > 80 / self.multiplicator:
+            if randint(1, 100) > 80 / self.multiplicand:
                 EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), "green")
 
 
 class Boss1(Enemy):
-    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicator):
-        super().__init__(game, "boss1", enemy_number, enemy_group, pos, phase, multiplicator)
+    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicand):
+        super().__init__(game, "boss1", enemy_number, enemy_group, pos, phase, multiplicand)
         self.game = game
         self.state = "flight"
-        self.state_hold_time = randint(1, (20 // self.multiplicator))
+        self.state_hold_time = randint(1, (20 // self.multiplicand))
         self.state_timer = 0
         self.speed_x = 50
 
         self.animation = self.game.assets["boss1/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
 
-        self.hold_fire = randint(1, (10 // self.multiplicator))
+        self.hold_fire = randint(1, (10 // self.multiplicand))
         self.shoot_timer = 0 
-        self.laser_damage = 10 * self.multiplicator
-        self.rocket_damage = 40 * self.multiplicator
+        self.laser_damage = 10 * self.multiplicand
+        self.rocket_damage = 40 * self.multiplicand
         self.fire_mode = None
         self.shooting_state = "not shooting"
         self.projectile_interval_timer = 0
@@ -198,7 +198,7 @@ class Boss1(Enemy):
 
         elif self.explosion_counter > 100:
             self.kill()
-            self.game.score += 50 * self.score_factor * self.multiplicator
+            self.game.score += 50 * self.score_factor * self.multiplicand
             Upgrade(self.game, (self.pos))
             self.start_autofire()
             getattr(self.game, "proceed_level")()
@@ -393,9 +393,9 @@ class Boss1(Enemy):
                 if self.shot_counter > 10:
                     self.reset_shooting()
 
-            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicator:
+            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicand:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-                self.upgrade_time = 10 * self.multiplicator
+                self.upgrade_time = 10 * self.multiplicand
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:
@@ -429,21 +429,21 @@ class Boss1(Enemy):
 
 
 class Boss2(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
-        super().__init__(game, "boss2", enemy_number, enemy_group, pos, phase, multiplicator)
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
+        super().__init__(game, "boss2", enemy_number, enemy_group, pos, phase, multiplicand)
         self.game = game
         self.state = "flight"
-        self.state_hold_time = randint(1, (20 // self.multiplicator))
+        self.state_hold_time = randint(1, (20 // self.multiplicand))
         self.state_timer = 0
         self.speed_x = 50
 
         self.animation = self.game.assets["boss2/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
 
-        self.hold_fire = randint(1, (10 // self.multiplicator))
+        self.hold_fire = randint(1, (10 // self.multiplicand))
         self.shoot_timer = 0 
-        self.laser_damage = 15 * self.multiplicator
-        self.rocket_damage = 50 * self.multiplicator
+        self.laser_damage = 15 * self.multiplicand
+        self.rocket_damage = 50 * self.multiplicand
         self.fire_mode = None
         self.shooting_state = "not shooting"
         self.projectile_interval_timer = 0
@@ -508,7 +508,7 @@ class Boss2(Enemy):
 
         elif self.explosion_counter > 100:
             self.kill()
-            self.game.score += 50 * self.score_factor * self.multiplicator
+            self.game.score += 50 * self.score_factor * self.multiplicand
             Upgrade(self.game, (self.pos))
             self.start_autofire()
             getattr(self.game, "proceed_level")()
@@ -707,9 +707,9 @@ class Boss2(Enemy):
                 if self.shot_counter > 10:
                     self.reset_shooting()
 
-            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicator:
+            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicand:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-                self.upgrade_time = 10 * self.multiplicator
+                self.upgrade_time = 10 * self.multiplicand
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:
@@ -743,18 +743,18 @@ class Boss2(Enemy):
 
 
 class Boss3(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicator):
-        super().__init__(game, "boss3", enemy_number, enemy_group, pos, phase, multiplicator)
+    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
+        super().__init__(game, "boss3", enemy_number, enemy_group, pos, phase, multiplicand)
         self.game = game
         self.state = "flight"
-        self.state_hold_time = randint(1, (20 // self.multiplicator))
+        self.state_hold_time = randint(1, (20 // self.multiplicand))
         self.state_timer = 0
         self.speed_x = 50
 
         self.animation = self.game.assets["boss3/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
 
-        self.hold_fire = randint(1, (10 // self.multiplicator))
+        self.hold_fire = randint(1, (10 // self.multiplicand))
         self.shoot_timer = 0 
         self.laser_damage = 20
         self.rocket_damage = 80
@@ -822,7 +822,7 @@ class Boss3(Enemy):
 
         elif self.explosion_counter > 100:
             self.kill()
-            self.game.score += 50 * self.score_factor * self.multiplicator
+            self.game.score += 50 * self.score_factor * self.multiplicand
             Upgrade(self.game, (self.pos))
             self.start_autofire()
             getattr(self.game, "proceed_level")()
@@ -1023,9 +1023,9 @@ class Boss3(Enemy):
                 if self.shot_counter > 10:
                     self.reset_shooting()
 
-            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicator:
+            if self.upgrade_time <= 0 and len(self.game.upgrade_group) < 3 / self.multiplicand:
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-                self.upgrade_time = 10 * self.multiplicator
+                self.upgrade_time = 10 * self.multiplicand
 
     def fire_weapon(self, weapon_number):
         if weapon_number == 1:

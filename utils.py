@@ -17,11 +17,11 @@ def load_images(path, scale_factor):
         images.append(load_image(path + '/', img_name, scale_factor))
     return images
 
-def create_highscore_screen(font):
+def create_highscores_screen(font):
     surf = pg.Surface((1600, 900))
     surf.set_colorkey("black")
-    highscore_list = []
-    with open("highscore_list.txt", "r", encoding="utf-8") as file:
+    highscores_list = []
+    with open("highscores_list.txt", "r", encoding="utf-8") as file:
         text = file.read()
         lines = text.splitlines()
         for i, line in enumerate(lines):
@@ -35,29 +35,29 @@ def create_highscore_screen(font):
             score_to_render = word[1]
             score_to_blit = font.render(score_to_render, True, (247, 247, 247))
             surf.blit(score_to_blit, (950, 100 + i * 60))
-            highscore_list.append([word[0], int(word[1])])
-    return surf, highscore_list
+            highscores_list.append([word[0], int(word[1])])
+    return surf, highscores_list
 
-def sort_and_write_highscore(highscore_list, name, score):
-    highscore_list.append([str(name), int(score)])
+def sort_and_write_highscores(highscores_list, name, score):
+    highscores_list.append([str(name), int(score)])
 
     while True:
         bubbled = False
-        for i in range(len(highscore_list)-1):  
-            if highscore_list[i][1] < highscore_list[i+1][1]:
-                highscore_list[i+1], highscore_list[i] = highscore_list[i], highscore_list[i+1]
+        for i in range(len(highscores_list)-1):  
+            if highscores_list[i][1] < highscores_list[i+1][1]:
+                highscores_list[i+1], highscores_list[i] = highscores_list[i], highscores_list[i+1]
                 bubbled = True
                 
         if not bubbled:
             break
 
-    highscore_list.pop(-1)
+    highscores_list.pop(-1)
 
-    with open("highscore_list.txt", "w", encoding="utf-8") as file:
+    with open("highscores_list.txt", "w", encoding="utf-8") as file:
         for i in range(10):
             for j in range(2):
                 
-                file.write(str(highscore_list[i][j]))
+                file.write(str(highscores_list[i][j]))
                 if j == 0:
                     file.write(" ")
                 if j == 1:
