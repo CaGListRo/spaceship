@@ -3,49 +3,49 @@ from projectile import EnemyProjectile
 from healthbar import Healthbar
 from explosion import ShipExplosion, BiggerExplosion
 from upgrades import Upgrade
-from icecream import ic
 
 import pygame as pg
 from random import randint, choice
-from time import time
+from typing import TypeVar
 
+Game = TypeVar("Game")
+Animation = TypeVar("Animation")
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, game, ship_path, enemy_number, enemy_group, pos, phase, multiplicand=1):
+    def __init__(self, game: Game, ship_path: str, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int = 1) -> None:
         super().__init__(enemy_group)
-        self.multiplicand = multiplicand
-        self.game = game
-        self.health = enemy_number * 50 * self.multiplicand
-        self.max_health = self.health
-        self.score_factor = enemy_number
-        self.animation = self.game.assets[ship_path + "/idle"].copy()
-        self.image = self.animation.get_img()
-        self.rect = self.image.get_rect(center = pos)
-        self.enemy_mask = pg.mask.from_surface(self.image)
-        self.pos = pg.math.Vector2(self.rect.topleft)
-        self.direction = pg.math.Vector2(0, 1)
-        self.speed_y = 100
-        self.killed = False
+        self.game: Game = game
+        self.animation: Animation = self.game.assets[ship_path + "/idle"].copy()
+        self.image: pg.Surface = self.animation.get_img()
+        self.rect: pg.Rect = self.image.get_rect(center = pos)
+        self.enemy_mask: pg.mask = pg.mask.from_surface(self.image)
+        self.multiplicand: int = multiplicand
+        self.health: int | float = enemy_number * 50 * self.multiplicand
+        self.max_health: int = self.health
+        self.score_factor: int = enemy_number
+        
+        self.pos: pg.Vector2 = pg.Vector2(self.rect.topleft)
+        self.direction: pg.Vector2 = pg.Vector2(0, 1)
+        self.speed_y: int = 100
+        self.killed: bool = False
 
-        self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos)
+        self.healthbar = Healthbar(game=self.game, max_health=self.max_health, current_health=self.health, image_width=self.image.get_width(), sprite_pos=self.pos)
 
-        # self.animated_objects = pg.sprite.Group()  # for the boss death animation
-
-    def take_damage(self, damage):
+    def take_damage(self, damage: int | float) -> bool:
         self.health -= damage
-        self.healthbar.update(self.health, self.pos)
+        self.healthbar.update(current_health=self.health, sprite_pos=self.pos)
         if self.health <= 0:
             self.kill()
             self.killed = True
             self.game.score += 50 * self.score_factor * self.multiplicand
-            Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
-            self.game.fx_list.append(ShipExplosion(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 20)))
+            Upgrade(game=self.game, pos=(self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
+            self.game.fx_list.append(ShipExplosion(game=self.game, pos=(self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 20)))
         return self.killed
 
-    def create_mask(self):
+    def create_mask(self) -> None:
         self.enemy_mask = pg.mask.from_surface(self.image)
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         self.animation.update(dt)
         self.image = self.animation.get_img()
 
@@ -54,73 +54,73 @@ class Enemy(pg.sprite.Sprite):
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
 
-        self.healthbar.update(self.health, self.pos)
+        self.healthbar.update(current_health=self.health, sprite_pos=self.pos)
 
         if self.pos.y > stgs.GAME_WINDOW_RESOLUTION[1]:
             self.kill()
         
         
 class EnemyShip1(Enemy):
-    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicand):
-        super().__init__(game, "enemy1", enemy_number, enemy_group, pos, phase, multiplicand)
-        self.shooting_timer = 1 / self.multiplicand
-        self.timer = self.shooting_timer
-        self.laser_damage = 20 * self.multiplicand
+    def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        super().__init__(game, "enemy1", enemy_number, enemy_group, pos, multiplicand)
+        self.shooting_timer: float = 1 / self.multiplicand
+        self.timer: float = self.shooting_timer
+        self.laser_damage: int = 20 * self.multiplicand
     
-    def update(self, dt):
-        super().update(dt)
-        self.shoot(dt)
+    def update(self, dt: float) -> None:
+        super().update(dt=dt)
+        self.shoot(dt=dt)
 
-    def shoot(self, dt):
+    def shoot(self, dt: float) -> None:
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
             if randint(1, 100) > 80 / self.multiplicand:
-                EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10), "red")
+                EnemyProjectile(game=self.game, projectile_type="laser", damage=self.laser_damage, pos=(self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() + 10), laser_color="red")
 
 
 class EnemyShip2(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
-        super().__init__(game, "enemy2", enemy_number, enemy_group, pos, phase, multiplicand)
-        self.shooting_timer = 0.8 / self.multiplicand
-        self.timer = self.shooting_timer
-        self.laser_damage = 10 * self.multiplicand
+    def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        super().__init__(game, "enemy2", enemy_number, enemy_group, pos, multiplicand)
+        self.shooting_timer: float = 0.8 / self.multiplicand
+        self.timer: float = self.shooting_timer
+        self.laser_damage: int = 10 * self.multiplicand
     
-    def update(self, dt):
-        super().update(dt)
-        self.shoot(dt)
+    def update(self, dt: float) -> None:
+        super().update(dt=dt)
+        self.shoot(dt=dt)
 
-    def shoot(self, dt):
+    def shoot(self, dt: float) -> None:
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
             if randint(1, 100) > 80 / self.multiplicand:
-                EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2 - 10, self.pos.y + self.image.get_height() + 10), "green")
-                EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), "green")
+                EnemyProjectile(game=self.game, projectile_type="laser", damage=self.laser_damage, pos=(self.pos.x + self.image.get_width() // 2 - 10, self.pos.y + self.image.get_height() + 10), laser_color="green")
+                EnemyProjectile(game=self.game, projectile_type="laser", damage=self.laser_damage, pos=(self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), laser_color="green")
 
 
 class EnemyShip3(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
-        super().__init__(game, "enemy3", enemy_number, enemy_group, pos, phase, multiplicand)
-        self.shooting_timer = 2 / self.multiplicand
-        self.timer = self.shooting_timer
-        self.rocket_damage = 40 * self.multiplicand
+    def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        super().__init__(game, "enemy3", enemy_number, enemy_group, pos, multiplicand)
+        self.shooting_timer: float = 2 / self.multiplicand
+        self.timer: float = self.shooting_timer
+        self.rocket_damage: int = 40 * self.multiplicand
 
-    def update(self, dt):
-        super().update(dt)
-        self.shoot(dt)
+    def update(self, dt: float) -> None:
+        super().update(dt=dt)
+        self.shoot(dt=dt)
 
-    def shoot(self, dt):
+    def shoot(self, dt: float) -> None:
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
             if randint(1, 100) > 80 / self.multiplicand:
-                EnemyProjectile(self.game, "rocket1", self.rocket_damage, (self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), "green")
+                EnemyProjectile(game=self.game, projectile_type="rocket1", damage=self.rocket_damage, pos=(self.pos.x + self.image.get_width() // 2 + 10, self.pos.y + self.image.get_height() + 10), laser_color="green")
 
 
 class Boss1(Enemy):
-    def __init__(self, game, enemy_number, enemy_group, pos, phase, multiplicand):
-        super().__init__(game, "boss1", enemy_number, enemy_group, pos, phase, multiplicand)
+    def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        super().__init__(game, "boss1", enemy_number, enemy_group, pos, multiplicand)
         self.game = game
         self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicand))
@@ -151,25 +151,25 @@ class Boss1(Enemy):
         self.explosion_counter = 0
         self.explosion_timer = 1 / randint(3, 9)
 
-    def start_autofire(self):
+    def start_autofire(self) -> None:
         if not self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = True
             for drone in self.game.drones:
                 if drone != 0:
                     drone.auto_fire = True
 
-    def stop_autofire(self):
+    def stop_autofire(self) -> None:
         if self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = False
             for drone in self.game.drones:
                 if drone != 0:
                     drone.auto_fire = False
 
-    def kill_projectiles(self):
+    def kill_projectiles(self) -> None:
         for projectile in self.game.player_projectile_group:
                 projectile.kill()
 
-    def take_damage(self, damage):
+    def take_damage(self, damage: int) -> bool:
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -177,7 +177,7 @@ class Boss1(Enemy):
             self.kill_projectiles()       
         return False
     
-    def death_animation(self, dt):
+    def death_animation(self, dt: float) -> None:
         self.stop_autofire()
         mask_width, mask_height = self.enemy_mask.get_size()
         if self.explosion_counter <= 100:
@@ -203,10 +203,10 @@ class Boss1(Enemy):
             self.start_autofire()
             getattr(self.game, "proceed_level")()
 
-    def create_mask(self):
+    def create_mask(self) -> None:
         self.mask = pg.mask.from_surface(self.image)    
 
-    def set_x_direction(self):
+    def set_x_direction(self) -> None:
         if self.state == "left":
             self.direction.x = -1
         elif self.state == "right":
@@ -214,7 +214,7 @@ class Boss1(Enemy):
         else:
             self.direction.x = 0
 
-    def handle_state(self, dt):
+    def handle_state(self, dt: float) -> None:
         self.state_timer += dt
         if self.state_timer >= self.state_hold_time:
             old_state = self.state
@@ -225,12 +225,12 @@ class Boss1(Enemy):
                 self.handle_image_and_mask()
                 self.set_x_direction()
 
-    def handle_image_and_mask(self):
+    def handle_image_and_mask(self) -> None:
         self.animation = self.game.assets["boss1/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
         self.create_mask()
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         if not self.killed:
             if self.state != "open":
                 self.animation.update(dt)
@@ -287,19 +287,19 @@ class Boss1(Enemy):
         elif self.killed:
             self.death_animation(dt)
 
-    def handle_shooting(self, dt):
+    def handle_shooting(self, dt: float) -> None:
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
             self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket"])
             self.shooting_state = "shooting"
 
-    def reset_shooting(self):
+    def reset_shooting(self) -> None:
         self.shooting_state = "not shooting"
         self.shoot_timer = 0
         self.hold_fire = randint(1, 10)
         self.shot_counter = 0
 
-    def handle_fire_modi(self, dt):
+    def handle_fire_modi(self, dt: float) -> None:
         if self.shooting_state == "shooting":
             self.upgrade_time -= dt
             self.projectile_interval_timer += dt
@@ -397,7 +397,7 @@ class Boss1(Enemy):
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
                 self.upgrade_time = 10 * self.multiplicand
 
-    def fire_weapon(self, weapon_number):
+    def fire_weapon(self, weapon_number: int) -> None:
         if weapon_number == 1:
             EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 149, self.pos.y + 239), "red")       
         elif weapon_number == 2:
@@ -429,8 +429,8 @@ class Boss1(Enemy):
 
 
 class Boss2(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
-        super().__init__(game, "boss2", enemy_number, enemy_group, pos, phase, multiplicand)
+    def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        super().__init__(game, "boss2", enemy_number, enemy_group, pos, multiplicand)
         self.game = game
         self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicand))
@@ -461,25 +461,25 @@ class Boss2(Enemy):
         self.explosion_counter = 0
         self.explosion_timer = 1 / randint(3, 9)
 
-    def start_autofire(self):
+    def start_autofire(self) -> None:
         if not self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = True
             for drone in self.game.drones:
                 if drone != 0:
                     drone.auto_fire = True
 
-    def stop_autofire(self):
+    def stop_autofire(self) -> None:
         if self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = False
             for drone in self.game.drones:
                 if drone != 0:
                     drone.auto_fire = False
 
-    def kill_projectiles(self):
+    def kill_projectiles(self) -> None:
         for projectile in self.game.player_projectile_group:
                 projectile.kill()
 
-    def take_damage(self, damage):
+    def take_damage(self, damage: int) -> bool:
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -487,7 +487,7 @@ class Boss2(Enemy):
             self.kill_projectiles()       
         return False
     
-    def death_animation(self, dt):
+    def death_animation(self, dt: float) -> None:
         self.stop_autofire()
         mask_width, mask_height = self.enemy_mask.get_size()
         if self.explosion_counter <= 100:
@@ -513,10 +513,10 @@ class Boss2(Enemy):
             self.start_autofire()
             getattr(self.game, "proceed_level")()
 
-    def create_mask(self):
+    def create_mask(self) -> None:
         self.mask = pg.mask.from_surface(self.image)    
 
-    def set_x_direction(self):
+    def set_x_direction(self) -> None:
         if self.state == "left":
             self.direction.x = -1
         elif self.state == "right":
@@ -524,7 +524,7 @@ class Boss2(Enemy):
         else:
             self.direction.x = 0
 
-    def handle_state(self, dt):
+    def handle_state(self, dt: float) -> None:
         self.state_timer += dt
         if self.state_timer >= self.state_hold_time:
             old_state = self.state
@@ -535,12 +535,12 @@ class Boss2(Enemy):
                 self.handle_image_and_mask()
                 self.set_x_direction()
 
-    def handle_image_and_mask(self):
+    def handle_image_and_mask(self) -> None:
         self.animation = self.game.assets["boss2/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
         self.create_mask()
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         if not self.killed:
             if self.state != "open":
                 self.animation.update(dt)
@@ -601,19 +601,19 @@ class Boss2(Enemy):
         elif self.killed:
             self.death_animation(dt)
 
-    def handle_shooting(self, dt):
+    def handle_shooting(self, dt: float) -> None:
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
             self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket", "spray"])
             self.shooting_state = "shooting"
 
-    def reset_shooting(self):
+    def reset_shooting(self) -> None:
         self.shooting_state = "not shooting"
         self.shoot_timer = 0
         self.hold_fire = randint(1, 10)
         self.shot_counter = 0
 
-    def handle_fire_modi(self, dt):
+    def handle_fire_modi(self, dt: float) -> None:
         if self.shooting_state == "shooting":
             self.upgrade_time -= dt
             self.projectile_interval_timer += dt
@@ -711,7 +711,7 @@ class Boss2(Enemy):
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
                 self.upgrade_time = 10 * self.multiplicand
 
-    def fire_weapon(self, weapon_number):
+    def fire_weapon(self, weapon_number: int) -> None:
         if weapon_number == 1:
             EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 96, self.pos.y + 202), "green")      
         elif weapon_number == 2:
@@ -743,9 +743,9 @@ class Boss2(Enemy):
 
 
 class Boss3(Enemy):
-    def __init__(self, game,  enemy_number, enemy_group, pos, phase, multiplicand):
-        super().__init__(game, "boss3", enemy_number, enemy_group, pos, phase, multiplicand)
-        self.game = game
+    def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        super().__init__(game, "boss3", enemy_number, enemy_group, pos, multiplicand)
+        self.game: Game = game
         self.state = "flight"
         self.state_hold_time = randint(1, (20 // self.multiplicand))
         self.state_timer = 0
@@ -775,25 +775,25 @@ class Boss3(Enemy):
         self.explosion_counter = 0
         self.explosion_timer = 1 / randint(3, 9)
 
-    def start_autofire(self):
+    def start_autofire(self) -> None:
         if not self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = True
             for drone in self.game.drones:
                 if drone != 0:
                     drone.auto_fire = True
 
-    def stop_autofire(self):
+    def stop_autofire(self) -> None:
         if self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = False
             for drone in self.game.drones:
                 if drone != 0:
                     drone.auto_fire = False
 
-    def kill_projectiles(self):
+    def kill_projectiles(self) -> None:
         for projectile in self.game.player_projectile_group:
                 projectile.kill()
 
-    def take_damage(self, damage):
+    def take_damage(self, damage: int) -> bool:
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -801,7 +801,7 @@ class Boss3(Enemy):
             self.kill_projectiles()       
         return False
     
-    def death_animation(self, dt):
+    def death_animation(self, dt: float) -> None:
         self.stop_autofire()
         mask_width, mask_height = self.enemy_mask.get_size()
         if self.explosion_counter <= 100:
@@ -827,10 +827,10 @@ class Boss3(Enemy):
             self.start_autofire()
             getattr(self.game, "proceed_level")()
 
-    def create_mask(self):
+    def create_mask(self) -> None:
         self.mask = pg.mask.from_surface(self.image)    
 
-    def set_x_direction(self):
+    def set_x_direction(self) -> None:
         if self.state == "left":
             self.direction.x = -1
         elif self.state == "right":
@@ -838,7 +838,7 @@ class Boss3(Enemy):
         else:
             self.direction.x = 0
 
-    def handle_state(self, dt):
+    def handle_state(self, dt: float) -> None:
         self.state_timer += dt
         if self.state_timer >= self.state_hold_time:
             old_state = self.state
@@ -849,12 +849,12 @@ class Boss3(Enemy):
                 self.handle_image_and_mask()
                 self.set_x_direction()
 
-    def handle_image_and_mask(self):
+    def handle_image_and_mask(self) -> None:
         self.animation = self.game.assets["boss3/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
         self.create_mask()
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         if not self.killed:
             if self.state != "open":
                 self.animation.update(dt)
@@ -915,19 +915,19 @@ class Boss3(Enemy):
         elif self.killed:
             self.death_animation(dt)
 
-    def handle_shooting(self, dt):
+    def handle_shooting(self, dt: float) -> None:
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
             self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket", "spray"])
             self.shooting_state = "shooting"
 
-    def reset_shooting(self):
+    def reset_shooting(self) -> None:
         self.shooting_state = "not shooting"
         self.shoot_timer = 0
         self.hold_fire = randint(1, 10)
         self.shot_counter = 0
 
-    def handle_fire_modi(self, dt):
+    def handle_fire_modi(self, dt: float) -> None:
         if self.shooting_state == "shooting":
             self.upgrade_time -= dt
             self.projectile_interval_timer += dt
@@ -1027,7 +1027,7 @@ class Boss3(Enemy):
                 Upgrade(self.game, (self.pos.x + self.image.get_width() // 2, self.pos.y + self.image.get_height() // 2))
                 self.upgrade_time = 10 * self.multiplicand
 
-    def fire_weapon(self, weapon_number):
+    def fire_weapon(self, weapon_number: int) -> None:
         if weapon_number == 1:
             EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 122, self.pos.y + 214), "violet")      
         elif weapon_number == 2:

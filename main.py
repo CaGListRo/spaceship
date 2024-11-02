@@ -3,7 +3,7 @@ from spaceship import Spaceship
 from explosion import SmallExplosion
 from drone import Drone
 from enemy_creator import enemy_creator
-from utils import load_image, load_images, create_highscore_screen, sort_and_write_highscore, Animation, Helpsite
+from utils import load_image, load_images, create_highscores_screen, sort_and_write_highscores, Animation, Helpsite
 from button import Button
 
 from time import time
@@ -104,7 +104,7 @@ class Game:
         self.game_state: str = "menu"
         self.game_over_timer: int | float = 0
         self.help_site = Helpsite(self)
-        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscores_font)
+        self.highscores_site, self.highscores_list = create_highscores_screen(self.highscores_font)
 
     def add_drones(self) -> None:
         for i, _ in enumerate(self.drones):
@@ -213,10 +213,10 @@ class Game:
             self.wave += 1
 
     def check_score(self) -> None:
-        if self.score >= self.highscore_list[-1][1]:
+        if self.score >= self.highscores_list[-1][1]:
             self.game_state = "game over"
         else:
-            self.game_state = "highscore"
+            self.game_state = "highscores"
 
     def handle_events(self) -> None:
         for event in pg.event.get():
@@ -250,9 +250,9 @@ class Game:
                     if event.key == pg.K_BACKSPACE:
                         self.player_name = self.player_name[0:-1]
                     elif event.key == pg.K_RETURN:
-                        sort_and_write_highscore(self.highscore_list, self.player_name, self.score)
-                        self.highscore_site, self.highscore_list = create_highscore_screen(self.highscores_font)
-                        self.game_state = "highscore"
+                        sort_and_write_highscores(self.highscores_list, self.player_name, self.score)
+                        self.highscores_site, self.highscores_list = create_highscores_screen(self.highscores_font)
+                        self.game_state = "highscores"
                     else:
                         if len(self.player_name) < 8:    
                             self.player_name += event.unicode
@@ -340,15 +340,15 @@ class Game:
             self.main_window.blit(pg.transform.scale(self.assets["logo"], (1600, 900)), (0, 0))
             self.start_button.render()
             self.help_button.render()
-            self.highscore_button.render()
+            self.highscores_button.render()
             self.quit_button.render()
 
         elif self.game_state == "help":
             self.help_site.render(self.main_window)
             self.back_button.render()
 
-        elif self.game_state == "highscore":
-            self.main_window.blit(self.highscore_site, (0, 0))
+        elif self.game_state == "highscores":
+            self.main_window.blit(self.highscores_site, (0, 0))
             self.back_button.render()
 
         elif self.game_state == "play":
@@ -383,7 +383,7 @@ class Game:
                 pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
                 self.main_window.blit(self.game_window, (195, 95))
             elif self.game_over_timer >= 5:
-                self.main_window.blit(self.highscore_site, (0, 0))
+                self.main_window.blit(self.highscores_site, (0, 0))
                 player_name_to_blit = self.highscores_font.render(self.player_name, True, (247, 247, 247))
                 pg.draw.rect(self.main_window, (247, 247, 247), (590, 740, max(30, player_name_to_blit.get_width() + 20), 80), width=3)
                 self.main_window.blit(player_name_to_blit, (600, 745))
@@ -395,7 +395,7 @@ class Game:
     def create_buttons(self) -> None:
         self.start_button = Button(self.main_window, "Start", (1380, 630))
         self.help_button =  Button(self.main_window, "Help", (1380, 700))
-        self.highscore_button = Button(self.main_window, "Highscores", (1380, 770))
+        self.highscores_button = Button(self.main_window, "highscores", (1380, 770))
         self.quit_button = Button(self.main_window, "Quit", (1380, 840))
         self.back_button = Button(self.main_window, "back", (200, 800))
 
@@ -414,15 +414,15 @@ class Game:
                     self.game_state = "play"
                 if self.help_button.check_button_collision():
                     self.game_state = "help"
-                if self.highscore_button.check_button_collision():
-                    self.game_state = "highscore"
+                if self.highscores_button.check_button_collision():
+                    self.game_state = "highscores"
                 if self.quit_button.check_button_collision():
                     self.run = False
             elif self.game_state == "help":
                 self.help_site.update()
                 if self.back_button.check_button_collision():
                     self.game_state = "menu"
-            elif self.game_state == "highscore":
+            elif self.game_state == "highscores":
                 if self.back_button.check_button_collision():
                     self.game_state = "menu"
 

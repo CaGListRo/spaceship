@@ -1,9 +1,10 @@
+from typing import Final
 
-MAIN_WINDOW_RESOLUTION = (1600, 900)
-GAME_WINDOW_RESOLUTION = (1400, 800)
+MAIN_WINDOW_RESOLUTION: Final[tuple[int]] = (1600, 900)
+GAME_WINDOW_RESOLUTION: Final[tuple[int]] = (1400, 800)
 
 
-enemy_waves = {1: [
+enemy_waves: Final[dict[list[int]]] = {1: [
     [1, 1, 1],
     [1, 1, 1],
     [1, 1, 1],

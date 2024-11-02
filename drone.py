@@ -70,7 +70,7 @@ class Drone(pg.sprite.Sprite):
     def update(self, dt: float, move_x: list[int] = [0, 0]) -> None:
         self.handle_animation(dt, move_x)
         self.x_pos = self.game.spaceship.image.get_width() // 2 if self.side < 0 else round(self.game.spaceship.image.get_width() * 1.5) - self.image.get_width()
-        self.pos = pg.math.Vector2(self.game.spaceship.pos.x + (self.x_pos * self.side), self.game.spaceship.pos.y + (self.game.spaceship.image.get_height() // 2))
+        self.pos = pg.Vector2(self.game.spaceship.pos.x + (self.x_pos * self.side), self.game.spaceship.pos.y + (self.game.spaceship.image.get_height() // 2))
         self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
 

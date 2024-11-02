@@ -3,9 +3,14 @@ from projectile import PlayerProjectile
 from healthbar import Healthbar
 
 import pygame as pg
+from typing import Final, TypeVar
+
+Game = TypeVar("Game")
 
 
 class Spaceship(pg.sprite.Sprite):
+    TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
+    
     def __init__(self, game, player_group, projectile_group, pos):
         super().__init__(player_group)
         self.game = game
@@ -15,14 +20,14 @@ class Spaceship(pg.sprite.Sprite):
         self.animation = self.game.assets["ship/" + self.state].copy()
         self.ship_image = self.animation.get_img()
         self.weapon_image = self.game.assets[self.weapon + "/" + self.state]
-        self.image = pg.Surface((self.ship_image.get_width(), self.ship_image.get_height()))
+        self.image = pg.Surface((self.ship_image.get_width(), self.ship_image.get_height()), pg.SRCALPHA)
+        self.image.fill(self.TRANSPARENT_BACKGROUND)
         self.image.blit(self.weapon_image, (0, 0))
         self.image.blit(self.ship_image, (0, 0))
-        self.image.set_colorkey("black")
         self.rect = self.image.get_rect(center = pos)
         self.mask = pg.mask.from_surface(self.image)
-        self.pos = pg.math.Vector2(self.rect.topleft)
-        self.direction = pg.math.Vector2()
+        self.pos = pg.Vector2(self.rect.topleft)
+        self.direction = pg.Vector2()
         self.flip_image = False
         self.rocket_flip_flop = True
 
@@ -80,7 +85,7 @@ class Spaceship(pg.sprite.Sprite):
 
         self.ship_image = self.animation.get_img()
         self.weapon_image = self.game.assets[self.weapon + "/" + self.state]
-        self.image.fill("black")
+        self.image.fill(self.TRANSPARENT_BACKGROUND)
         self.image.blit(self.weapon_image, (0, 0))
         self.image.blit(self.ship_image, (0, 0))
         self.image = pg.transform.flip(self.image, self.flip_image, False)
