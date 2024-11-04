@@ -6,68 +6,70 @@ import pygame as pg
 from typing import Final, TypeVar
 
 Game = TypeVar("Game")
+Animation_object = TypeVar("Animation_object")
+Healthbar_object = TypeVar("Healthbar_object")
 
 
 class Spaceship(pg.sprite.Sprite):
     TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
     
-    def __init__(self, game, player_group, projectile_group, pos):
+    def __init__(self, game: Game, player_group: pg.sprite.Group, projectile_group: pg.sprite.Group, pos: tuple[int]) -> None:
         super().__init__(player_group)
-        self.game = game
-        self.player_projectile_group = projectile_group
-        self.state = "idle"
-        self.weapon = "laser"
-        self.animation = self.game.assets["ship/" + self.state].copy()
-        self.ship_image = self.animation.get_img()
-        self.weapon_image = self.game.assets[self.weapon + "/" + self.state]
-        self.image = pg.Surface((self.ship_image.get_width(), self.ship_image.get_height()), pg.SRCALPHA)
+        self.game: Game = game
+        self.player_projectile_group: pg.sprite.Group = projectile_group
+        self.state: str = "idle"
+        self.weapon: str = "laser"
+        self.animation: Animation_object = self.game.assets["ship/" + self.state].copy()
+        self.ship_image: pg.Surface = self.animation.get_img()
+        self.weapon_image: pg.Surface = self.game.assets[self.weapon + "/" + self.state]
+        self.image: pg.Surface = pg.Surface((self.ship_image.get_width(), self.ship_image.get_height()), pg.SRCALPHA)
         self.image.fill(self.TRANSPARENT_BACKGROUND)
         self.image.blit(self.weapon_image, (0, 0))
         self.image.blit(self.ship_image, (0, 0))
-        self.rect = self.image.get_rect(center = pos)
-        self.mask = pg.mask.from_surface(self.image)
-        self.pos = pg.Vector2(self.rect.topleft)
-        self.direction = pg.Vector2()
-        self.flip_image = False
-        self.rocket_flip_flop = True
+        self.rect: pg.Rect = self.image.get_rect(center = pos)
+        self.mask: pg.mask = pg.mask.from_surface(self.image)
+        self.pos: pg.Vector2 = pg.Vector2(self.rect.topleft)
+        self.direction: pg.Vector2 = pg.Vector2()
+        self.flip_image: bool = False
+        self.rocket_flip_flop: bool = True
 
-        self.shoot_timer = 0
-        self.speed = 200
-        self.max_health = 100
-        self.health = 100   
-        self.laser_fire_rate = 0.5
-        self.rocket_fire_rate = 1
-        self.laser_damage = 10
-        self.rocket_damage = 50
-        self.current_fire_rate = self.laser_fire_rate
-        self.current_weapon_damage = self.laser_damage
-        self.auto_fire = True
-        self.healthbar = 0
+        self.shoot_timer: int = 0
+        self.speed: int = 200
+        self.max_health: int = 100
+        self.health: int = 100   
+        self.laser_fire_rate: float = 0.5
+        self.rocket_fire_rate: float = 1.0
+        self.laser_damage: int = 10
+        self.rocket_damage: int = 50
+        self.current_fire_rate: float = self.laser_fire_rate
+        self.current_weapon_damage: int = self.laser_damage
+        self.auto_fire: bool = True
+        self.healthbar: None | Healthbar_object = None
 
         self.update_healthbar()
 
-    def update_healthbar(self):
-        if self.healthbar != 0:
+    def update_healthbar(self) -> None:
+        if self.healthbar:
             self.game.healthbars.remove(self.healthbar)
         self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
-    def take_damage(self, damage):
+    def take_damage(self, damage: int | float) -> None:
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
             self.kill()
             getattr(self.game, "handle_live_lost")()
 
-    def return_current_fire_rate(self):
+    def return_current_fire_rate(self) -> float:
         return self.current_fire_rate
     
-    def return_current_weapon_damage(self):
+    def return_current_weapon_damage(self) -> int:
         return self.current_weapon_damage
     
-    def create_mask(self):
+    def create_mask(self) -> None:
         self.mask = pg.mask.from_surface(self.ship_image)
 
-    def handle_animation(self, dt, move_x):
+    def handle_animation(self, dt: float, move_x: tuple[int]) -> None:
         old_state = self.state
         if (move_x[1] - move_x[0]) == 0:
             self.state = "idle"
@@ -90,7 +92,7 @@ class Spaceship(pg.sprite.Sprite):
         self.image.blit(self.ship_image, (0, 0))
         self.image = pg.transform.flip(self.image, self.flip_image, False)
 
-    def update(self, dt, move_x=(0, 0), move_y=(0, 0)):
+    def update(self, dt: float, move_x: tuple[int] = (0, 0), move_y: tuple[int] = (0, 0)) -> None:
         self.handle_animation(dt, move_x)
 
         self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
@@ -118,7 +120,7 @@ class Spaceship(pg.sprite.Sprite):
 
         self.healthbar.update(self.health, self.pos)
 
-    def fire_weapons(self, dt):
+    def fire_weapons(self, dt: float) -> None:
         self.shoot_timer += dt
         if self.weapon == "laser":
             self.current_fire_rate = self.laser_fire_rate
@@ -150,5 +152,5 @@ class Spaceship(pg.sprite.Sprite):
                     PlayerProjectile(self.game, "laser", self.current_weapon_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 20), 75)
                 self.shoot_timer = 0
 
-    def draw(self, surf):
+    def draw(self, surf: pg.Surface) -> None:
         surf.blit(self.image, self.pos)

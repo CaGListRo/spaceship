@@ -3,23 +3,29 @@ import settings as stgs
 import os
 import pygame as pg
 from random import randint
+from typing import Final, TypeVar
+
+Game = TypeVar("Game")
+Animation_object = TypeVar("Animation_object")
 
 
-BASE_PATH = "images/"
+BASE_PATH: Final[str] = "images/"
+TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
+WHITE: Final[tuple[int]] = (247, 247, 247)
 
-def load_image(path, imagename, scale_factor):
-    img = pg.image.load(BASE_PATH + path + "/" + imagename).convert_alpha()
+def load_image(path: str, imagename: str, scale_factor: float) -> pg.Surface:
+    img: pg.Surface = pg.image.load(BASE_PATH + path + "/" + imagename).convert_alpha()
     return pg.transform.scale(img, (img.get_width() * scale_factor, img.get_height() * scale_factor))
 
-def load_images(path, scale_factor):
+def load_images(path: str, scale_factor: float) -> list[pg.Surface]:
     images = []
     for img_name in sorted(os.listdir(BASE_PATH + path)):  # sorted because of not Windows systems
         images.append(load_image(path + '/', img_name, scale_factor))
     return images
 
-def create_highscores_screen(font):
-    surf = pg.Surface((1600, 900))
-    surf.set_colorkey("black")
+def create_highscores_screen(font: pg.font.Font) -> tuple[pg.Surface, list[str]]:
+    surf: pg.Surface = pg.Surface((1600, 900), pg.SRCALPHA)
+    surf.fill(TRANSPARENT_BACKGROUND)
     highscores_list = []
     with open("highscores_list.txt", "r", encoding="utf-8") as file:
         text = file.read()
@@ -27,22 +33,22 @@ def create_highscores_screen(font):
         for i, line in enumerate(lines):
             word = line.split(" ")
             number_to_render = f"{str(i+1)}."
-            number_to_blit = font.render(number_to_render, True, (247, 247, 247))
+            number_to_blit = font.render(number_to_render, True, WHITE)
             surf.blit(number_to_blit, (450, 100 + i * 60))
             name_to_render = word[0]
-            name_to_blit = font.render(name_to_render, True, (247, 247, 247))
+            name_to_blit = font.render(name_to_render, True, WHITE)
             surf.blit(name_to_blit, (600, 100 + i * 60))
             score_to_render = word[1]
-            score_to_blit = font.render(score_to_render, True, (247, 247, 247))
+            score_to_blit = font.render(score_to_render, True, WHITE)
             surf.blit(score_to_blit, (950, 100 + i * 60))
             highscores_list.append([word[0], int(word[1])])
     return surf, highscores_list
 
-def sort_and_write_highscores(highscores_list, name, score):
+def sort_and_write_highscores(highscores_list: list[str], name: str, score: int) -> None:
     highscores_list.append([str(name), int(score)])
 
     while True:
-        bubbled = False
+        bubbled: bool = False
         for i in range(len(highscores_list)-1):  
             if highscores_list[i][1] < highscores_list[i+1][1]:
                 highscores_list[i+1], highscores_list[i] = highscores_list[i], highscores_list[i+1]
@@ -65,19 +71,19 @@ def sort_and_write_highscores(highscores_list, name, score):
 
 
 class Animation:
-    def __init__(self, image_list, animation_duration, loop=True):
-        self.img_list = list(image_list)
-        self.anim_dur = animation_duration
-        self.loop = loop
-        self.done = False
-        self.current_frame = 0
-        self.img_duration = animation_duration / len(image_list)
-        self.img_timer = 0
+    def __init__(self, image_list: list[pg.Surface], animation_duration: int | float, loop: bool = True) -> None:
+        self.img_list: list[pg.Surface] = list(image_list)
+        self.anim_dur: int | float = animation_duration
+        self.loop: bool = loop
+        self.done: bool = False
+        self.current_frame: int = 0
+        self.img_duration: float = animation_duration / len(image_list)
+        self.img_timer: int | float = 0
 
-    def copy(self):
+    def copy(self) -> Animation_object:
         return Animation(self.img_list, self.anim_dur, self.loop)
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         self.img_timer += dt
         if self.img_timer >= self.img_duration and not self.done:
             self.current_frame += 1
@@ -88,7 +94,7 @@ class Animation:
                 else:
                     self.done = True
 
-    def get_img(self):
+    def get_img(self) -> pg.Surface | None:
         if 0 <= self.current_frame < len(self.img_list):
             return self.img_list[self.current_frame]
         else:
@@ -96,15 +102,15 @@ class Animation:
         
 
 class Helpsite:
-    def __init__(self, game):
-        self.game = game
+    TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
+
+    def __init__(self, game: Game) -> None:
+        self.game: Game = game
         self.font = pg.font.SysFont("comicsans", 32)
-        self.surface = pg.Surface((1600, 900))
-        self.surface.fill((111, 111, 111))
-        self.surface.set_colorkey((111, 111, 111))
-        self.text_surf = pg.Surface((530, 150))
-        self.text_surf.fill((111, 111, 111))
-        self.text_surf.set_colorkey((111, 111, 111))
+        self.surface = pg.Surface((1600, 900), pg.SRCALPHA)
+        self.surface.fill(self.TRANSPARENT_BACKGROUND)
+        self.text_surf = pg.Surface((530, 150), pg.SRCALPHA)
+        self.text_surf.fill(self.TRANSPARENT_BACKGROUND)
         self.mouse_pos = pg.mouse.get_pos()
         self.upgrade_rect_list = []
         self.rect_width_height = self.game.assets["upgrade/background"][0].get_width()

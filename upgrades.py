@@ -1,25 +1,30 @@
 import settings as stgs
 
 import pygame as pg
-from random import randint, choice
+from random import randint
+from typing import Final, TypeVar
+
+Game = TypeVar("Game")
 
 
 class Upgrade(pg.sprite.Sprite):
-    def __init__(self, game, pos):
+    TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
+    SPEED: Final[int] = 50
+
+    def __init__(self, game: Game, pos: tuple[int]) -> None:
         super().__init__(game.upgrade_group)
-        background_number = randint(0, 6)
-        self.upgrade_number = randint(0, 10)
-        self.image = pg.Surface((50, 50))  # depends on the scale factor
-        self.image.set_colorkey("black")
+        background_number: int = randint(0, 6)
+        self.upgrade_number: int = randint(0, 10)
+        self.image: pg.Surface = pg.Surface((50, 50), pg.SRCALPHA)  # depends on the scale factor
+        self.image.fill(self.TRANSPARENT_BACKGROUND)
         self.image.blit(game.assets["upgrade/background"][background_number], (0, 0))
         self.image.blit(game.assets["upgrade/image"][int(self.upgrade_number)], (0, 0))
-        self.rect = self.image.get_rect(center = pos)
-        self.pos = pg.math.Vector2(self.rect.topleft)
-        self.mask = pg.mask.from_surface(self.image)
-        self.speed = 50
+        self.rect: pg.Rect = self.image.get_rect(center = pos)
+        self.pos: pg.Vector2 = pg.Vector2(self.rect.topleft)
+        self.mask: pg.mask = pg.mask.from_surface(self.image)
 
-    def update(self, dt):
-        self.pos.y += self.speed * dt
+    def update(self, dt: float) -> None:
+        self.pos.y += self.SPEED * dt
         self.rect.y = self.pos.y
 
         if self.rect.top > stgs.GAME_WINDOW_RESOLUTION[1]:
