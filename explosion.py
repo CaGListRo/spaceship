@@ -54,6 +54,7 @@ class SmallExplosion:
         if self.image != None:
             surf.blit(self.image, self.rect)
 
+
 class BiggerExplosion:
     def __init__(self, game: Game, pos: tuple[int]) -> None:
         self.animation: Animation = game.assets["bigger_explosion"].copy()

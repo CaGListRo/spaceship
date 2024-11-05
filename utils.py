@@ -112,19 +112,19 @@ class Helpsite:
         self.text_surf = pg.Surface((530, 150), pg.SRCALPHA)
         self.text_surf.fill(self.TRANSPARENT_BACKGROUND)
         self.mouse_pos = pg.mouse.get_pos()
-        self.upgrade_rect_list = []
-        self.rect_width_height = self.game.assets["upgrade/background"][0].get_width()
-        self.text_list = []
-        self.text_number = -1
+        self.upgrade_rect_list: list[pg.Rect] = []
+        self.rect_width_height: int = self.game.assets["upgrade/background"][0].get_width()
+        self.text_list: list[str] = []
+        self.text_number: int = -1
         self.generate_background_numbers()
         self.load_upgrade_texts()
         self.draw_help_text()
         self.draw_upgrades()
 
-    def generate_background_numbers(self):
+    def generate_background_numbers(self) -> None:
         self.background_numbers = [randint(0, 6) for _ in range(11)]
 
-    def draw_help_text(self):       
+    def draw_help_text(self) -> None:       
         with open("help_text.txt", "r", encoding="utf-8") as file:
             text = file.read()
             lines = text.splitlines()
@@ -132,21 +132,21 @@ class Helpsite:
                 text = self.font.render(line, True, (247, 247, 247))
                 self.surface.blit(text, (50, 50 + i * 50))
 
-    def draw_upgrades(self):
+    def draw_upgrades(self) -> None:
         self.upgrade_rect_list = []
         for i, upgrade in enumerate(self.game.assets["upgrade/image"]):
             self.surface.blit(self.game.assets["upgrade/background"][self.background_numbers[i]], (50 + i * 130, 420))
             self.surface.blit(upgrade, (50 + i * 130, 420))
             self.upgrade_rect_list.append(pg.Rect(50 + i * 130, 420, self.rect_width_height, self.rect_width_height))
 
-    def check_rect_collision(self):
+    def check_rect_collision(self) -> int:
         self.mouse_pos = pg.mouse.get_pos()
         for i, rect in enumerate(self.upgrade_rect_list):
             if rect.collidepoint(self.mouse_pos):
                 return i
         return -1
     
-    def handle_upgrade_texts(self):
+    def handle_upgrade_texts(self) -> None:
         self.text_number = self.check_rect_collision()
         self.text_surf.fill((111, 111, 111))
         for i, line in enumerate(self.text_list[self.text_number]):
@@ -154,7 +154,7 @@ class Helpsite:
             self.text_surf.blit(line_to_blit, (0, 0 + i * 50))
 
 
-    def load_upgrade_texts(self):        
+    def load_upgrade_texts(self) -> None:        
         with open("upgrade_texts.txt", "r", encoding="utf-8") as file:
             lines = file.readlines()
             help_list = []
@@ -167,14 +167,13 @@ class Helpsite:
                     help_list.append(line)
             self.text_list.append(help_list)
 
-    def update(self):
+    def update(self) -> None:
         self.surface.fill((111, 111, 111))
         self.handle_upgrade_texts()
         self.draw_help_text()
         self.draw_upgrades()
 
-    def render(self, surf):
-        
+    def render(self, surf) -> None:  
         if self.text_number != -1:
             if self.mouse_pos[0] + self.text_surf.get_width() > stgs.MAIN_WINDOW_RESOLUTION[0]:
                 

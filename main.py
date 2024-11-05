@@ -8,13 +8,17 @@ from button import Button
 
 from time import time
 import pygame as pg
+from typing import Final
 
 
 class Game:
+    WHITE: Final[tuple[int]] = (247, 247, 247)
+
     def __init__(self) -> None:
+        """ Initializes the game. """
         pg.init()
-        self.main_window = pg.display.set_mode(stgs.MAIN_WINDOW_RESOLUTION)
-        self.game_window = pg.Surface(stgs.GAME_WINDOW_RESOLUTION)
+        self.main_window: pg.display = pg.display.set_mode(stgs.MAIN_WINDOW_RESOLUTION)
+        self.game_window: pg.Surface = pg.Surface(stgs.GAME_WINDOW_RESOLUTION)
         self.fps: int = 0
 
         self.player_group: pg.sprite.Group = pg.sprite.Group()
@@ -76,11 +80,11 @@ class Game:
         
         self.score_font: pg.font.Font = pg.font.SysFont("comicsans", 42)
         self.highscores_font: pg.font.Font = pg.font.SysFont("comicsans", 52)
-        self.get_ready_text: pg.Surface = self.score_font.render("GET READY!", True, (247, 247, 247))
-        self.fight_text: pg.Surface = self.score_font.render("FIGHT!", True, (247, 247, 247))
-        self.start_text: pg.Surface = self.score_font.render("START!", True, (247, 247, 247))
-        self.game_over_text: pg.Surface = self.highscores_font.render("GAME OVER!", True, (247, 247, 247))
-        self.enter_name_text: pg.Surface = self.highscores_font.render("Enter your name.", True, (247, 247, 247))
+        self.get_ready_text: pg.Surface = self.score_font.render("GET READY!", True, self.WHITE)
+        self.fight_text: pg.Surface = self.score_font.render("FIGHT!", True, self.WHITE)
+        self.start_text: pg.Surface = self.score_font.render("START!", True, self.WHITE)
+        self.game_over_text: pg.Surface = self.highscores_font.render("GAME OVER!", True, self.WHITE)
+        self.enter_name_text: pg.Surface = self.highscores_font.render("Enter your name.", True, self.WHITE)
         self.player_name: str = ""
 
         self.background_start_y: int = -2000
@@ -107,6 +111,7 @@ class Game:
         self.highscores_site, self.highscores_list = create_highscores_screen(self.highscores_font)
 
     def add_drones(self) -> None:
+        """ Add drones to the sides of the player. (One at a time) """
         for i, _ in enumerate(self.drones):
             if self.drones[i] == 0 and self.drones_to_get > 0:
                 self.drones_to_get -= 1
@@ -114,6 +119,7 @@ class Game:
                 self.drones[i] = Drone(self, self.drone_group, self.player_projectile_group, side_picker)
 
     def handle_upgrade_collision(self) -> None:
+        """ Handle collision with upgrade items. """
         for upgrade in self.upgrade_group:
             if pg.sprite.spritecollide(upgrade, self.player_group, False, pg.sprite.collide_mask):
                 self.score += 5
@@ -159,6 +165,7 @@ class Game:
                 upgrade.kill()
 
     def proceed_level(self) -> None:
+        """ Proceed to the next level. """
         self.countdown = True
         self.countdown_time = self.countdown_start_value
         self.phase += 1
@@ -172,6 +179,7 @@ class Game:
             self.multiplicand = 3
 
     def handle_enemy_drone_collision(self) -> None:
+        """ Handle collision with the enemy and the drones. """
         for enemy in self.enemy_group:
             overlap = pg.sprite.spritecollide(enemy, self.drone_group, False, pg.sprite.collide_mask)
             if overlap:
@@ -181,12 +189,14 @@ class Game:
                     enemy.take_damage(50 * self.multiplicand)
 
     def handle_enemy_player_collision(self) -> None:
+        """ Handle collision with the enemy and the player. """
         for enemy in self.enemy_group:
             if pg.sprite.spritecollide(enemy, self.player_group, False, pg.sprite.collide_mask):
                 self.spaceship.take_damage(min(enemy.health, 50))
                 enemy.take_damage(150 * self.multiplicand)
 
     def handle_projectile_player_collision(self) -> None:
+        """ Handle collision with the enemy projectiles and the player. """
         for projectile in self.enemy_projectile_group:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.player_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
@@ -196,6 +206,7 @@ class Game:
                     projectile.kill()
 
     def handle_projectile_enemy_collision(self) -> None:
+        """ Handle collision with the player projectiles and the enemy. """
         for projectile in self.player_projectile_group:
             overlap_sprites = pg.sprite.spritecollide(projectile, self.enemy_group, False, pg.sprite.collide_mask)
             if overlap_sprites:
@@ -206,6 +217,10 @@ class Game:
                     self.score += 10
 
     def handle_enemies(self, dt: float) -> None:
+        """
+        Creates the new enemy wave after a certain time 
+        or if all enemies from the wave before are destroyed.
+        """
         self.enemy_appearance_timer += dt
         if len(self.enemy_group) < 1 and self.enemy_appearance_timer >= 10:
             enemy_creator(self, self.enemy_group, self.phase, self.wave, self.multiplicand)
@@ -213,12 +228,14 @@ class Game:
             self.wave += 1
 
     def check_score(self) -> None:
+        """ Check if the player has reached the score required to rank in the highscores list. """
         if self.score >= self.highscores_list[-1][1]:
             self.game_state = "game over"
         else:
             self.game_state = "highscores"
 
     def handle_events(self) -> None:
+        """ Handle events such as closing the game window, quitting the game, steering the spaceship, etc. """
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.run = False
@@ -257,7 +274,8 @@ class Game:
                         if len(self.player_name) < 8:    
                             self.player_name += event.unicode
 
-    def update_groups(self, dt: float) -> None:  
+    def update_groups(self, dt: float) -> None:
+        """ Update the groups of objects in the game. """
         self.player_group.update(dt, self.move_x, self.move_y)
         self.drone_group.update(dt)
         self.player_projectile_group.update(dt)
@@ -275,10 +293,12 @@ class Game:
                 self.healthbars.remove(healthbar)
 
     def move_background(self, dt: float) -> None:
+        """ Move the background of the game. """
         self.background_y += dt * 10
         self.background_y = min(0, self.background_y)
 
     def handle_live_lost(self) -> None:
+        """ Handle the player losing a life. """
         if self.lives > 0:
             for element in self.drone_group:
                 element.take_damage(555)
@@ -289,40 +309,43 @@ class Game:
             self.game_state = "game over"
 
     def draw_lives(self) -> None:
-            if self.lives < 10:
-                for i in range(self.lives):
-                    self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800 - 90 * i))
-            else:
-                self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800))
-                lives_to_render = f"x {self.lives}"
-                lives_to_blit = self.score_font.render(lives_to_render, True, (247, 247, 247))
-                self.main_window.blit(lives_to_blit, (80, 809))
+        """ Draw the lives of the player. """
+        if self.lives < 10:
+            for i in range(self.lives):
+                self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800 - 90 * i))
+        else:
+            self.main_window.blit(pg.transform.scale(self.assets["live_image"], (50, 82)), (10, 800))
+            lives_to_render = f"x {self.lives}"
+            lives_to_blit = self.score_font.render(lives_to_render, True, self.WHITE)
+            self.main_window.blit(lives_to_blit, (80, 809))
 
     def draw_stats_and_score(self) -> None:
+        """ Draw the stats and score of the player. """
         score_to_render: str = f"Score: {self.score}"
-        score_to_blit: pg.Surface = self.score_font.render(score_to_render, True, (247, 247, 247))
+        score_to_blit: pg.Surface = self.score_font.render(score_to_render, True, self.WHITE)
         self.main_window.blit(score_to_blit, (200, 8))
 
         fire_power_to_render: str = f"FP: {self.spaceship.current_weapon_damage}"
-        fire_power_to_blit: pg.Surface = self.score_font.render(fire_power_to_render, True, (247, 247, 247))
+        fire_power_to_blit: pg.Surface = self.score_font.render(fire_power_to_render, True, self.WHITE)
         self.main_window.blit(fire_power_to_blit, (600, 8))
 
         fire_rate_to_render: str = f"FR: {round(self.spaceship.current_fire_rate, 2)}"
-        fire_rate_to_blit: pg.Surface = self.score_font.render(fire_rate_to_render, True, (247, 247, 247))
+        fire_rate_to_blit: pg.Surface = self.score_font.render(fire_rate_to_render, True, self.WHITE)
         self.main_window.blit(fire_rate_to_blit, (800, 8))
 
         hp_to_render: str = f"HP: {self.spaceship.health}/{self.spaceship.max_health}"
-        hp_to_blit: pg.Surface = self.score_font.render(hp_to_render, True, (247, 247, 247))
+        hp_to_blit: pg.Surface = self.score_font.render(hp_to_render, True, self.WHITE)
         self.main_window.blit(hp_to_blit, (1000, 8))
 
         fps_to_render: str = f"FPS: {self.fps}"
-        fps_to_blit: pg.Surface = self.score_font.render(fps_to_render, True, (247, 247, 247))
+        fps_to_blit: pg.Surface = self.score_font.render(fps_to_render, True, self.WHITE)
         self.main_window.blit(fps_to_blit, (1400, 8))
 
-    def show_countdown(self, dt: float) -> None:     
+    def show_countdown(self, dt: float) -> None:
+        """ Show the 'get ready' countdown before the game starts. """
         countdown_to_render = self.countdown_time // 1
         if self.countdown_time >= 1:
-            countdown_to_blit: pg.Surface = self.score_font.render(str(int(countdown_to_render)), True, (247, 247, 247))
+            countdown_to_blit: pg.Surface = self.score_font.render(str(int(countdown_to_render)), True, self.WHITE)
             self.game_window.blit(countdown_to_blit, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - countdown_to_blit.get_width() // 2, 
                                                     stgs.GAME_WINDOW_RESOLUTION[1] // 2 - countdown_to_blit.get_height() // 2))
             self.game_window.blit(self.get_ready_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.get_ready_text.get_width() // 2, 
@@ -335,9 +358,10 @@ class Game:
             self.countdown = False
 
     def draw_window(self, dt: float) -> None:
-        self.main_window.blit(pg.transform.scale(self.assets["title"], (1600, 900)), (0, 0))
+        """ Draw the game window. """
+        self.main_window.blit(pg.transform.scale(self.assets["title"], stgs.MAIN_WINDOW_RESOLUTION), (0, 0))
         if self.game_state == "menu":
-            self.main_window.blit(pg.transform.scale(self.assets["logo"], (1600, 900)), (0, 0))
+            self.main_window.blit(pg.transform.scale(self.assets["logo"], stgs.MAIN_WINDOW_RESOLUTION), (0, 0))
             self.start_button.render()
             self.help_button.render()
             self.highscores_button.render()
@@ -371,7 +395,7 @@ class Game:
             for healthbar in self.healthbars:
                 healthbar.draw(self.game_window)
 
-            pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
+            pg.draw.rect(self.main_window, self.WHITE, (190, 90, 1410, 810))
             self.main_window.blit(self.game_window, (195, 95))
 
         elif self.game_state == "game over":
@@ -380,12 +404,12 @@ class Game:
                 self.game_over_timer += dt
                 self.game_window.blit(self.game_over_text, (stgs.GAME_WINDOW_RESOLUTION[0] // 2 - self.game_over_text.get_width() // 2,
                                                             stgs.GAME_WINDOW_RESOLUTION[1] // 2 - self.game_over_text.get_height() // 2))
-                pg.draw.rect(self.main_window, (247, 247, 247), (190, 90, 1410, 810))
+                pg.draw.rect(self.main_window, self.WHITE, (190, 90, 1410, 810))
                 self.main_window.blit(self.game_window, (195, 95))
             elif self.game_over_timer >= 5:
                 self.main_window.blit(self.highscores_site, (0, 0))
-                player_name_to_blit = self.highscores_font.render(self.player_name, True, (247, 247, 247))
-                pg.draw.rect(self.main_window, (247, 247, 247), (590, 740, max(30, player_name_to_blit.get_width() + 20), 80), width=3)
+                player_name_to_blit = self.highscores_font.render(self.player_name, True, self.WHITE)
+                pg.draw.rect(self.main_window, self.WHITE, (590, 740, max(30, player_name_to_blit.get_width() + 20), 80), width=3)
                 self.main_window.blit(player_name_to_blit, (600, 745))
                 self.main_window.blit(self.enter_name_text, (stgs.MAIN_WINDOW_RESOLUTION[0] // 2 - self.enter_name_text.get_width() // 2, 820))
             
@@ -393,6 +417,7 @@ class Game:
         pg.display.update()
 
     def create_buttons(self) -> None:
+        """ Creates the menu buttons. """
         self.start_button = Button(self.main_window, "Start", (1380, 630))
         self.help_button =  Button(self.main_window, "Help", (1380, 700))
         self.highscores_button = Button(self.main_window, "highscores", (1380, 770))
@@ -400,6 +425,7 @@ class Game:
         self.back_button = Button(self.main_window, "back", (200, 800))
 
     def main(self) -> None:
+        """ The main function of the game, containing the game loop. """
         frame_counter = 0
         time_counter = 0
         self.create_buttons()

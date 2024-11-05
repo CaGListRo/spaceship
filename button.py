@@ -13,6 +13,7 @@ class Button:
     BUTTON_SHADOW_COLOR: Final[tuple[int]] = (55, 55, 55)
 
     def __init__(self, surf: pg.Surface, text: str, pos: tuple[int]) -> None:
+        """ Initializes an button object. """
         self.surface: pg.Surface = surf
         self.text: str = text
         self.pos: list[int] = list(pos)        
@@ -24,6 +25,7 @@ class Button:
         self.offset: int = self.BUTTON_OFFSET
 
     def render(self) -> None:
+        """ Renders the button on the screen. """
         pg.draw.rect(self.surface, self.BUTTON_SHADOW_COLOR, (self.button_bottom_rect[0] - 2, self.button_bottom_rect[1] - 2, self.BUTTON_SIZE[0] + 4, self.BUTTON_SIZE[1] + 4), border_radius=5)
         pg.draw.rect(self.surface, self.BUTTON_BOTTOM_COLOR, self.button_bottom_rect, border_radius=5)
         pg.draw.rect(self.surface, self.BUTTON_TOP_COLOR, (self.pos[0] - self.BUTTON_SIZE[0] // 2, self.pos[1] - self.BUTTON_SIZE[1] // 2 - self.BUTTON_OFFSET, self.BUTTON_SIZE[0], self.BUTTON_SIZE[1]), border_radius=5)
@@ -32,6 +34,7 @@ class Button:
         self.surface.blit(button_label, (self.pos[0] - button_label.get_width() // 2, self.pos[1] - button_label.get_height() // 2 - self.BUTTON_OFFSET))
 
     def check_button_collision(self) -> bool:
+        """ Checks if the mouse is colliding with the button and if the left mouse button is clicked on it. """
         mouse_pos = pg.mouse.get_pos()
         if self.button_top_rect.collidepoint(mouse_pos):
             self.button_color = self.BUTTON_HOVER_COLOR
