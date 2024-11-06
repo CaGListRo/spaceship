@@ -11,7 +11,15 @@ Animation = TypeVar("Animation")
 class Drone(pg.sprite.Sprite):
     MAX_HEALTH: Final[int] = 50
 
-    def __init__(self, game: Game, drone_group: pg.sprite.Group, projectile_group: pg.sprite.Group, side: int):
+    def __init__(self, game: Game, drone_group: pg.sprite.Group, projectile_group: pg.sprite.Group, side: int) -> None:
+        """
+        Initializes a drone object.
+        Args:
+        game (Game): The game object.
+        drone_group (pg.sprite.Group): The group of drones.
+        projectile_group (pg.sprite.Group): The group of projectiles.
+        side (int): The side of the drone (1 = right or -1 = left).
+        """
         super().__init__(drone_group)
         self.game: Game = game
         self.player_projectile_group: pg.sprite.Group = projectile_group
@@ -34,6 +42,12 @@ class Drone(pg.sprite.Sprite):
         self.healthbar = Healthbar(self.game, self.MAX_HEALTH, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
     def take_damage(self, damage: int | float) -> None:
+        """
+        Takes damage from the drone.
+        Args:
+        damage (int | float): The amount of damage taken.
+        """
+
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -47,9 +61,17 @@ class Drone(pg.sprite.Sprite):
                 self.game.drones[1] = 0
                 
     def create_mask(self) -> None:
+        """ Creates the mask for the drone. """
         self.drone_mask = pg.mask.from_surface(self.image)
 
     def handle_animation(self, dt: float, move_x: list[int]) -> None:
+        """
+        Handles the animation of the drone.
+        Args:
+        dt (float): The time since the last frame.
+        move_x (list[int]): The x movement of the drone.
+        """
+
         old_state = self.state
         if (move_x[1] - move_x[0]) == 0:
             self.state = "idle"
@@ -68,6 +90,13 @@ class Drone(pg.sprite.Sprite):
         self.image = pg.transform.flip(self.animation.get_img(), self.flip_image, False)
 
     def update(self, dt: float, move_x: list[int] = [0, 0]) -> None:
+        """
+        Updates the drone.
+        Args:
+        dt (float): The time difference between the current frame and the previous frame.
+        move_x (list[int]): The x movement of the drone.
+        """
+
         self.handle_animation(dt, move_x)
         self.x_pos = self.game.spaceship.image.get_width() // 2 if self.side < 0 else round(self.game.spaceship.image.get_width() * 1.5) - self.image.get_width()
         self.pos = pg.Vector2(self.game.spaceship.pos.x + (self.x_pos * self.side), self.game.spaceship.pos.y + (self.game.spaceship.image.get_height() // 2))
@@ -77,6 +106,11 @@ class Drone(pg.sprite.Sprite):
         self.healthbar.update(self.health, self.pos)
 
     def fire_weapon(self, dt: float) -> None:
+        """
+        Fires the drone's weapon.
+        Args:
+        dt (float): The time difference between the current frame and the previous frame.
+        """
         self.shoot_timer += dt
         if self.shoot_timer > max(0.1, self.laser_fire_rate):
             PlayerProjectile(self.game, "laser", self.laser_damage, (self.pos.x + self.image.get_width() // 2, self.pos.y + 5))

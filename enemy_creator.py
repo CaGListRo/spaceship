@@ -6,7 +6,15 @@ from typing import TypeVar
 Game = TypeVar("Game")
 
 def enemy_creator(game: Game, enemy_group: pg.sprite.Group, phase: int, wave: int, multiplicand: int) -> None:
-    # enemy_formation = randint(0, 4)
+    """
+    Creates the waves of the enemy ships and bosses.
+    Args:
+    game (Game): The game object.
+    enemy_group (pg.sprite.Group): The group of enemy sprites.
+    phase (int): The current phase of the game.
+    wave (int): The current wave of the enemy ships.
+    multiplicand (int): The difficulty multiplicand (1, 2 or 3).
+    """
     x_pos = stgs.GAME_WINDOW_RESOLUTION[0] // (len(stgs.enemy_waves[phase][wave]) + 1)  # x_pos for first ship
     for i in range(len(stgs.enemy_waves[phase][wave])):
         if stgs.enemy_waves[phase][wave][i] == 1:

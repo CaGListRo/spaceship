@@ -13,6 +13,17 @@ Animation = TypeVar("Animation")
 
 class Enemy(pg.sprite.Sprite):
     def __init__(self, game: Game, ship_path: str, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int = 1) -> None:
+        """
+        This is the prototype class from which the ship classes inherit.
+        Args:
+        game (Game): The game object.
+        ship_path (str): The path to the ship image.
+        enemy_number (int): The number of the enemy.
+        enemy_group (pg.sprite.Group): The group of enemies.
+        pos (tuple[int]): The position of the enemy.
+        multiplicand (int, optional): The multiplicand for the enemy's speed. Defaults to 1.
+        """
+
         super().__init__(enemy_group)
         self.game: Game = game
         self.animation: Animation = self.game.assets[ship_path + "/idle"].copy()
@@ -32,6 +43,14 @@ class Enemy(pg.sprite.Sprite):
         self.healthbar = Healthbar(game=self.game, max_health=self.max_health, current_health=self.health, image_width=self.image.get_width(), sprite_pos=self.pos)
 
     def take_damage(self, damage: int | float) -> bool:
+        """
+        This method is used to take damage from the player's projectiles and collisions with the player.
+        Args:
+        damage (int | float): The amount of damage taken.
+        Returns:
+        bool: Whether the enemy is killed or not.
+        """
+
         self.health -= damage
         self.healthbar.update(current_health=self.health, sprite_pos=self.pos)
         if self.health <= 0:
@@ -43,9 +62,15 @@ class Enemy(pg.sprite.Sprite):
         return self.killed
 
     def create_mask(self) -> None:
+        """ Creates the mask for the enemy ship. """
         self.enemy_mask = pg.mask.from_surface(self.image)
 
     def update(self, dt: float) -> None:
+        """
+        Updates the enemy's position, animation and healthbar.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         self.animation.update(dt)
         self.image = self.animation.get_img()
 

@@ -13,7 +13,13 @@ class Button:
     BUTTON_SHADOW_COLOR: Final[tuple[int]] = (55, 55, 55)
 
     def __init__(self, surf: pg.Surface, text: str, pos: tuple[int]) -> None:
-        """ Initializes an button object. """
+        """
+        Initializes an button object.
+        Args:
+        surf (pg.Surface): The surface to draw the button on.
+        text (str): The text to display on the button.
+        pos (tuple[int]): The position of the button.
+        """
         self.surface: pg.Surface = surf
         self.text: str = text
         self.pos: list[int] = list(pos)        

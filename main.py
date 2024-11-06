@@ -275,7 +275,11 @@ class Game:
                             self.player_name += event.unicode
 
     def update_groups(self, dt: float) -> None:
-        """ Update the groups of objects in the game. """
+        """
+        Update the groups of objects in the game.
+        Args:
+        dt (float): The time difference between the current frame and the previous frame.
+        """
         self.player_group.update(dt, self.move_x, self.move_y)
         self.drone_group.update(dt)
         self.player_projectile_group.update(dt)
@@ -293,7 +297,11 @@ class Game:
                 self.healthbars.remove(healthbar)
 
     def move_background(self, dt: float) -> None:
-        """ Move the background of the game. """
+        """
+        Move the background of the game.
+        Args:
+        dt (float): The time difference between the current frame and the previous frame.
+        """
         self.background_y += dt * 10
         self.background_y = min(0, self.background_y)
 
@@ -342,7 +350,11 @@ class Game:
         self.main_window.blit(fps_to_blit, (1400, 8))
 
     def show_countdown(self, dt: float) -> None:
-        """ Show the 'get ready' countdown before the game starts. """
+        """
+        Show the 'get ready' countdown before the game starts.
+        Args:
+        dt (float): The time difference between the current frame and the previous frame.
+        """
         countdown_to_render = self.countdown_time // 1
         if self.countdown_time >= 1:
             countdown_to_blit: pg.Surface = self.score_font.render(str(int(countdown_to_render)), True, self.WHITE)
@@ -358,7 +370,11 @@ class Game:
             self.countdown = False
 
     def draw_window(self, dt: float) -> None:
-        """ Draw the game window. """
+        """
+        Draw the game window.
+        Args:
+        dt (float): The time difference between the current frame and the previous frame.
+        """
         self.main_window.blit(pg.transform.scale(self.assets["title"], stgs.MAIN_WINDOW_RESOLUTION), (0, 0))
         if self.game_state == "menu":
             self.main_window.blit(pg.transform.scale(self.assets["logo"], stgs.MAIN_WINDOW_RESOLUTION), (0, 0))
