@@ -87,16 +87,36 @@ class Enemy(pg.sprite.Sprite):
         
 class EnemyShip1(Enemy):
     def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        """
+        This class is used to create the first type of enemy ship.
+        Args:
+        game (Game): The game instance.
+        enemy_number (int): The number of the enemy ship.
+        enemy_group (pg.sprite.Group): The group of enemy ships.
+        pos (tuple[int]): The position of the enemy ship.
+        multiplicand (int): The multiplicand used to calculate the score.
+        """
         super().__init__(game, "enemy1", enemy_number, enemy_group, pos, multiplicand)
         self.shooting_timer: float = 1 / self.multiplicand
         self.timer: float = self.shooting_timer
         self.laser_damage: int = 20 * self.multiplicand
     
     def update(self, dt: float) -> None:
+        """
+        Updates the enemy's position, animation and healthbar in the super class.
+        Calls the shoot-method.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         super().update(dt=dt)
         self.shoot(dt=dt)
 
     def shoot(self, dt: float) -> None:
+        """
+        Shoots a laser beam.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
@@ -106,16 +126,36 @@ class EnemyShip1(Enemy):
 
 class EnemyShip2(Enemy):
     def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        """
+        This class is used to create the second type of enemy ship.
+        Args:
+        game (Game): The game instance.
+        enemy_number (int): The number of the enemy ship.
+        enemy_group (pg.sprite.Group): The group of enemy ships.
+        pos (tuple[int]): The position of the enemy ship.
+        multiplicand (int): The multiplicand used to calculate the score.
+        """
         super().__init__(game, "enemy2", enemy_number, enemy_group, pos, multiplicand)
         self.shooting_timer: float = 0.8 / self.multiplicand
         self.timer: float = self.shooting_timer
         self.laser_damage: int = 10 * self.multiplicand
     
     def update(self, dt: float) -> None:
+        """
+        Updates the enemy's position, animation and healthbar in the super class.
+        Calls the shoot-method.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         super().update(dt=dt)
         self.shoot(dt=dt)
 
     def shoot(self, dt: float) -> None:
+        """
+        Shoots two laser beams.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
@@ -126,16 +166,36 @@ class EnemyShip2(Enemy):
 
 class EnemyShip3(Enemy):
     def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        """
+        This class is used to create the third type of enemy ship.
+        Args:
+        game (Game): The game instance.
+        enemy_number (int): The number of the enemy ship.
+        enemy_group (pg.sprite.Group): The group of enemy ships.
+        pos (tuple[int]): The position of the enemy ship.
+        multiplicand (int): The multiplicand used to calculate the score.
+        """
         super().__init__(game, "enemy3", enemy_number, enemy_group, pos, multiplicand)
         self.shooting_timer: float = 2 / self.multiplicand
         self.timer: float = self.shooting_timer
         self.rocket_damage: int = 40 * self.multiplicand
 
     def update(self, dt: float) -> None:
+        """
+        Updates the enemy's position, animation and healthbar in the super class.
+        Calls the shoot-method.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         super().update(dt=dt)
         self.shoot(dt=dt)
 
     def shoot(self, dt: float) -> None:
+        """
+        Shoots a rocket.
+        Args:
+        dt (float): The time difference since the last frame.
+        """
         self.timer -= dt
         if self.timer <= 0:
             self.timer = self.shooting_timer
@@ -145,6 +205,15 @@ class EnemyShip3(Enemy):
 
 class Boss1(Enemy):
     def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        """
+        This class is used to create the first boss type.
+        Args:
+        game (Game): The game instance.
+        enemy_number (int): The number of the enemy ship.
+        enemy_group (pg.sprite.Group): The group of enemy ships.
+        pos (tuple[int]): The position of the enemy ship.
+        multiplicand (int): The multiplicand used to calculate the score.
+        """
         super().__init__(game, "boss1", enemy_number, enemy_group, pos, multiplicand)
         self.game = game
         self.state = "flight"
@@ -177,6 +246,7 @@ class Boss1(Enemy):
         self.explosion_timer = 1 / randint(3, 9)
 
     def start_autofire(self) -> None:
+        """ Starts the autofire of the player. """
         if not self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = True
             for drone in self.game.drones:
@@ -184,6 +254,7 @@ class Boss1(Enemy):
                     drone.auto_fire = True
 
     def stop_autofire(self) -> None:
+        """ Stops the autofire of the player. """
         if self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = False
             for drone in self.game.drones:
@@ -191,10 +262,20 @@ class Boss1(Enemy):
                     drone.auto_fire = False
 
     def kill_projectiles(self) -> None:
+        """ Destroys all the player projectiles, so the boss appearance is with 100% health. """
         for projectile in self.game.player_projectile_group:
                 projectile.kill()
 
     def take_damage(self, damage: int) -> bool:
+        """
+        Takes damage and subtracts it from the health of the boss.
+        Returns always False because of the 'death animation',
+        but sets self.killed to True if the health in <= 0.
+        Args:
+        damage (int): The damage to be taken.
+        Return:
+        bool: Always False.
+        """
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -203,6 +284,11 @@ class Boss1(Enemy):
         return False
     
     def death_animation(self, dt: float) -> None:
+        """
+        Animates the death of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.stop_autofire()
         mask_width, mask_height = self.enemy_mask.get_size()
         if self.explosion_counter <= 100:
@@ -229,9 +315,11 @@ class Boss1(Enemy):
             getattr(self.game, "proceed_level")()
 
     def create_mask(self) -> None:
+        """ Creates a mask for the boss. """
         self.mask = pg.mask.from_surface(self.image)    
 
     def set_x_direction(self) -> None:
+        """ Sets the x direction of the boss. """
         if self.state == "left":
             self.direction.x = -1
         elif self.state == "right":
@@ -240,6 +328,11 @@ class Boss1(Enemy):
             self.direction.x = 0
 
     def handle_state(self, dt: float) -> None:
+        """
+        Handles the state of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.state_timer += dt
         if self.state_timer >= self.state_hold_time:
             old_state = self.state
@@ -251,11 +344,17 @@ class Boss1(Enemy):
                 self.set_x_direction()
 
     def handle_image_and_mask(self) -> None:
+        """ Handles the image and the mask of the boss. """
         self.animation = self.game.assets["boss1/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
         self.create_mask()
 
     def update(self, dt: float) -> None:
+        """
+        Updates the boss, handles the state, image and mask and shoot modi.
+        Args:
+        dt (float): The time since the last frame.
+        """
         if not self.killed:
             if self.state != "open":
                 self.animation.update(dt)
@@ -313,18 +412,30 @@ class Boss1(Enemy):
             self.death_animation(dt)
 
     def handle_shooting(self, dt: float) -> None:
+        """
+        Handles the shooting of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
             self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket"])
             self.shooting_state = "shooting"
 
     def reset_shooting(self) -> None:
+        """ Resets the shooting of the boss. """
         self.shooting_state = "not shooting"
         self.shoot_timer = 0
         self.hold_fire = randint(1, 10)
         self.shot_counter = 0
 
     def handle_fire_modi(self, dt: float) -> None:
+        """
+        Handles the fire mode of the boss and calls the fire_weapon-method
+        after shooting is finished it calls the reset_shooting-method.
+        Args:
+        dt (float): The time since the last frame.
+        """
         if self.shooting_state == "shooting":
             self.upgrade_time -= dt
             self.projectile_interval_timer += dt
@@ -423,6 +534,11 @@ class Boss1(Enemy):
                 self.upgrade_time = 10 * self.multiplicand
 
     def fire_weapon(self, weapon_number: int) -> None:
+        """
+        Fires a weapon based on the weapon number.
+        Args:
+        weapon_number (int): The number of the weapon to fire.
+        """
         if weapon_number == 1:
             EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 149, self.pos.y + 239), "red")       
         elif weapon_number == 2:
@@ -455,6 +571,15 @@ class Boss1(Enemy):
 
 class Boss2(Enemy):
     def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        """
+        This class is used to create the second boss type.
+        Args:
+        game (Game): The game instance.
+        enemy_number (int): The number of the enemy ship.
+        enemy_group (pg.sprite.Group): The group of enemy ships.
+        pos (tuple[int]): The position of the enemy ship.
+        multiplicand (int): The multiplicand used to calculate the score.
+        """
         super().__init__(game, "boss2", enemy_number, enemy_group, pos, multiplicand)
         self.game = game
         self.state = "flight"
@@ -487,6 +612,7 @@ class Boss2(Enemy):
         self.explosion_timer = 1 / randint(3, 9)
 
     def start_autofire(self) -> None:
+        """ Starts the autofire of the player. """
         if not self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = True
             for drone in self.game.drones:
@@ -494,6 +620,7 @@ class Boss2(Enemy):
                     drone.auto_fire = True
 
     def stop_autofire(self) -> None:
+        """ Stops the autofire of the player. """
         if self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = False
             for drone in self.game.drones:
@@ -501,10 +628,20 @@ class Boss2(Enemy):
                     drone.auto_fire = False
 
     def kill_projectiles(self) -> None:
+        """ Destroys all the player projectiles, so the boss appearance is with 100% health. """
         for projectile in self.game.player_projectile_group:
                 projectile.kill()
 
     def take_damage(self, damage: int) -> bool:
+        """
+        Takes damage and subtracts it from the health of the boss.
+        Returns always False because of the 'death animation',
+        but sets self.killed to True if the health in <= 0.
+        Args:
+        damage (int): The damage to be taken.
+        Return:
+        bool: Always False.
+        """
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -513,6 +650,11 @@ class Boss2(Enemy):
         return False
     
     def death_animation(self, dt: float) -> None:
+        """
+        Animates the death of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.stop_autofire()
         mask_width, mask_height = self.enemy_mask.get_size()
         if self.explosion_counter <= 100:
@@ -539,9 +681,11 @@ class Boss2(Enemy):
             getattr(self.game, "proceed_level")()
 
     def create_mask(self) -> None:
+        """ Creates a mask for the boss. """
         self.mask = pg.mask.from_surface(self.image)    
 
     def set_x_direction(self) -> None:
+        """ Sets the x direction of the boss. """
         if self.state == "left":
             self.direction.x = -1
         elif self.state == "right":
@@ -550,6 +694,11 @@ class Boss2(Enemy):
             self.direction.x = 0
 
     def handle_state(self, dt: float) -> None:
+        """
+        Handles the state of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.state_timer += dt
         if self.state_timer >= self.state_hold_time:
             old_state = self.state
@@ -561,11 +710,17 @@ class Boss2(Enemy):
                 self.set_x_direction()
 
     def handle_image_and_mask(self) -> None:
+        """ Handles the image and the mask of the boss. """
         self.animation = self.game.assets["boss2/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
         self.create_mask()
 
     def update(self, dt: float) -> None:
+        """
+        Updates the boss, handles the state, image and mask and shoot modi.
+        Args:
+        dt (float): The time since the last frame.
+        """
         if not self.killed:
             if self.state != "open":
                 self.animation.update(dt)
@@ -627,18 +782,30 @@ class Boss2(Enemy):
             self.death_animation(dt)
 
     def handle_shooting(self, dt: float) -> None:
+        """
+        Handles the shooting of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
             self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket", "spray"])
             self.shooting_state = "shooting"
 
     def reset_shooting(self) -> None:
+        """ Resets the shooting of the boss. """
         self.shooting_state = "not shooting"
         self.shoot_timer = 0
         self.hold_fire = randint(1, 10)
         self.shot_counter = 0
 
     def handle_fire_modi(self, dt: float) -> None:
+        """
+        Handles the fire mode of the boss and calls the fire_weapon-method
+        after shooting is finished it calls the reset_shooting-method.
+        Args:
+        dt (float): The time since the last frame.
+        """
         if self.shooting_state == "shooting":
             self.upgrade_time -= dt
             self.projectile_interval_timer += dt
@@ -737,6 +904,11 @@ class Boss2(Enemy):
                 self.upgrade_time = 10 * self.multiplicand
 
     def fire_weapon(self, weapon_number: int) -> None:
+        """
+        Fires a weapon based on the weapon number.
+        Args:
+        weapon_number (int): The number of the weapon to fire.
+        """
         if weapon_number == 1:
             EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 96, self.pos.y + 202), "green")      
         elif weapon_number == 2:
@@ -769,6 +941,15 @@ class Boss2(Enemy):
 
 class Boss3(Enemy):
     def __init__(self, game: Game, enemy_number: int, enemy_group: pg.sprite.Group, pos: tuple[int], multiplicand: int) -> None:
+        """
+        This class is used to create the third boss type.
+        Args:
+        game (Game): The game instance.
+        enemy_number (int): The number of the enemy ship.
+        enemy_group (pg.sprite.Group): The group of enemy ships.
+        pos (tuple[int]): The position of the enemy ship.
+        multiplicand (int): The multiplicand used to calculate the score.
+        """
         super().__init__(game, "boss3", enemy_number, enemy_group, pos, multiplicand)
         self.game: Game = game
         self.state = "flight"
@@ -801,6 +982,7 @@ class Boss3(Enemy):
         self.explosion_timer = 1 / randint(3, 9)
 
     def start_autofire(self) -> None:
+        """ Starts the autofire of the player. """
         if not self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = True
             for drone in self.game.drones:
@@ -808,6 +990,7 @@ class Boss3(Enemy):
                     drone.auto_fire = True
 
     def stop_autofire(self) -> None:
+        """ Stops the autofire of the player. """
         if self.game.spaceship.auto_fire:
             self.game.spaceship.auto_fire = False
             for drone in self.game.drones:
@@ -815,10 +998,20 @@ class Boss3(Enemy):
                     drone.auto_fire = False
 
     def kill_projectiles(self) -> None:
+        """ Destroys all the player projectiles, so the boss appearance is with 100% health. """
         for projectile in self.game.player_projectile_group:
                 projectile.kill()
 
     def take_damage(self, damage: int) -> bool:
+        """
+        Takes damage and subtracts it from the health of the boss.
+        Returns always False because of the 'death animation',
+        but sets self.killed to True if the health in <= 0.
+        Args:
+        damage (int): The damage to be taken.
+        Return:
+        bool: Always False.
+        """
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -827,6 +1020,11 @@ class Boss3(Enemy):
         return False
     
     def death_animation(self, dt: float) -> None:
+        """
+        Animates the death of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.stop_autofire()
         mask_width, mask_height = self.enemy_mask.get_size()
         if self.explosion_counter <= 100:
@@ -853,9 +1051,11 @@ class Boss3(Enemy):
             getattr(self.game, "proceed_level")()
 
     def create_mask(self) -> None:
+        """ Creates a mask for the boss. """
         self.mask = pg.mask.from_surface(self.image)    
 
     def set_x_direction(self) -> None:
+        """ Sets the x direction of the boss. """
         if self.state == "left":
             self.direction.x = -1
         elif self.state == "right":
@@ -864,6 +1064,11 @@ class Boss3(Enemy):
             self.direction.x = 0
 
     def handle_state(self, dt: float) -> None:
+        """
+        Handles the state of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.state_timer += dt
         if self.state_timer >= self.state_hold_time:
             old_state = self.state
@@ -875,11 +1080,17 @@ class Boss3(Enemy):
                 self.set_x_direction()
 
     def handle_image_and_mask(self) -> None:
+        """ Handles the image and the mask of the boss. """
         self.animation = self.game.assets["boss3/" + self.state].copy()
         self.rect = self.image.get_rect(center = self.pos)
         self.create_mask()
 
     def update(self, dt: float) -> None:
+        """
+        Updates the boss, handles the state, image and mask and shoot modi.
+        Args:
+        dt (float): The time since the last frame.
+        """
         if not self.killed:
             if self.state != "open":
                 self.animation.update(dt)
@@ -941,18 +1152,30 @@ class Boss3(Enemy):
             self.death_animation(dt)
 
     def handle_shooting(self, dt: float) -> None:
+        """
+        Handles the shooting of the boss.
+        Args:
+        dt (float): The time since the last frame.
+        """
         self.shoot_timer += dt
         if self.shoot_timer >= self.hold_fire:
             self.fire_mode = choice(["all", "cylone", "knight_rider", "laola", "random", "rocket", "spray"])
             self.shooting_state = "shooting"
 
     def reset_shooting(self) -> None:
+        """ Resets the shooting of the boss. """
         self.shooting_state = "not shooting"
         self.shoot_timer = 0
         self.hold_fire = randint(1, 10)
         self.shot_counter = 0
 
     def handle_fire_modi(self, dt: float) -> None:
+        """
+        Handles the fire mode of the boss and calls the fire_weapon-method
+        after shooting is finished it calls the reset_shooting-method.
+        Args:
+        dt (float): The time since the last frame.
+        """
         if self.shooting_state == "shooting":
             self.upgrade_time -= dt
             self.projectile_interval_timer += dt
@@ -1053,6 +1276,11 @@ class Boss3(Enemy):
                 self.upgrade_time = 10 * self.multiplicand
 
     def fire_weapon(self, weapon_number: int) -> None:
+        """
+        Fires a weapon based on the weapon number.
+        Args:
+        weapon_number (int): The number of the weapon to fire.
+        """
         if weapon_number == 1:
             EnemyProjectile(self.game, "laser", self.laser_damage, (self.pos.x + 122, self.pos.y + 214), "violet")      
         elif weapon_number == 2:

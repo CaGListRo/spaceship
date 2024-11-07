@@ -6,6 +6,13 @@ Animation = TypeVar("Animation")
 
 class ShipExplosion:
     def __init__(self, game: Game, pos: tuple[int], rotate: int = 180) -> None:
+        """
+        Initialize the ShipExplosion object.
+        Args:
+        game (Game): The game object.
+        pos (tuple[int]): The position of the explosion.
+        rotate (int): The rotation of the explosion. Defaults to 180.
+        """
         self.rotate: int = rotate
         self.animation: Animation = game.assets["explosion"].copy()
         self.image: pg.Surface = pg.transform.rotate(self.animation.get_img(), self.rotate)
