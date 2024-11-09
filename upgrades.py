@@ -12,6 +12,12 @@ class Upgrade(pg.sprite.Sprite):
     SPEED: Final[int] = 50
 
     def __init__(self, game: Game, pos: tuple[int]) -> None:
+        """
+        Initialize the Upgrade sprite.
+        Args:
+        game: The game instance.
+        pos: The position of the upgrade.
+        """
         super().__init__(game.upgrade_group)
         background_number: int = randint(0, 6)
         self.upgrade_number: int = randint(0, 10)
@@ -24,6 +30,11 @@ class Upgrade(pg.sprite.Sprite):
         self.mask: pg.mask = pg.mask.from_surface(self.image)
 
     def update(self, dt: float) -> None:
+        """
+        Update the upgrade position.
+        Args:
+        dt: The time elapsed since the last update.
+        """
         self.pos.y += self.SPEED * dt
         self.rect.y = self.pos.y
 

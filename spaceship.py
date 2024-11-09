@@ -14,6 +14,14 @@ class Spaceship(pg.sprite.Sprite):
     TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
     
     def __init__(self, game: Game, player_group: pg.sprite.Group, projectile_group: pg.sprite.Group, pos: tuple[int]) -> None:
+        """
+        Initialize the Spaceship object.
+        Args:
+        game (Game): The game object.
+        player_group (pg.sprite.Group): The player group object.
+        projectile_group (pg.sprite.Group): The projectile group object.
+        pos (tuple[int]): The position of the spaceship.
+        """
         super().__init__(player_group)
         self.game: Game = game
         self.player_projectile_group: pg.sprite.Group = projectile_group
@@ -49,11 +57,17 @@ class Spaceship(pg.sprite.Sprite):
         self.update_healthbar()
 
     def update_healthbar(self) -> None:
+        """ Update the healthbar object. """
         if self.healthbar:
             self.game.healthbars.remove(self.healthbar)
         self.healthbar = Healthbar(self.game, self.max_health, self.health, self.image.get_width(), self.pos, self.image.get_height())
 
     def take_damage(self, damage: int | float) -> None:
+        """
+        Take damage from an enemy projectile.
+        Args:
+        damage (int | float): The damage taken.
+        """
         self.health -= damage
         self.healthbar.update(self.health, self.pos)
         if self.health <= 0:
@@ -61,15 +75,32 @@ class Spaceship(pg.sprite.Sprite):
             getattr(self.game, "handle_live_lost")()
 
     def return_current_fire_rate(self) -> float:
+        """
+        Return the current fire rate.
+        Returns:
+        float: The current fire rate.
+        """
         return self.current_fire_rate
     
     def return_current_weapon_damage(self) -> int:
+        """
+        Return the current weapon damage.
+        Returns:
+        int: The current weapon damage.
+        """
         return self.current_weapon_damage
     
     def create_mask(self) -> None:
+        """ Creates the mask for the spaceship. """
         self.mask = pg.mask.from_surface(self.ship_image)
 
     def handle_animation(self, dt: float, move_x: tuple[int]) -> None:
+        """
+        Handle the animation of the spaceship.
+        Args:
+        dt (float): The time difference.
+        move_x (tuple[int]): The movement of the spaceship.
+        """
         old_state = self.state
         if (move_x[1] - move_x[0]) == 0:
             self.state = "idle"
@@ -93,6 +124,13 @@ class Spaceship(pg.sprite.Sprite):
         self.image = pg.transform.flip(self.image, self.flip_image, False)
 
     def update(self, dt: float, move_x: tuple[int] = (0, 0), move_y: tuple[int] = (0, 0)) -> None:
+        """
+        Update the position of the spaceship and calls the handle_animation-method.
+        Args:
+        dt (float): The time difference.
+        move_x (tuple[int]): The movement of the spaceship in the x-axis.
+        move_y (tuple[int]): The movement of the spaceship in the y-axis.
+        """
         self.handle_animation(dt, move_x)
 
         self.pos.x += (move_x[1] - move_x[0]) * self.speed * dt
@@ -121,6 +159,11 @@ class Spaceship(pg.sprite.Sprite):
         self.healthbar.update(self.health, self.pos)
 
     def fire_weapons(self, dt: float) -> None:
+        """
+        Fires the weapons of the spaceship.
+        Args:
+        dt (float): The time difference.
+        """
         self.shoot_timer += dt
         if self.weapon == "laser":
             self.current_fire_rate = self.laser_fire_rate
@@ -153,4 +196,9 @@ class Spaceship(pg.sprite.Sprite):
                 self.shoot_timer = 0
 
     def draw(self, surf: pg.Surface) -> None:
+        """
+        Draws the spaceship on the given surface.
+        Args:
+        surf (pg.Surface): The surface to draw on.
+        """
         surf.blit(self.image, self.pos)
