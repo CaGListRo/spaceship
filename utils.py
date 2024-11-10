@@ -14,16 +14,42 @@ TRANSPARENT_BACKGROUND: Final[tuple[int]] = (0, 0, 0, 0)
 WHITE: Final[tuple[int]] = (247, 247, 247)
 
 def load_image(path: str, imagename: str, scale_factor: float) -> pg.Surface:
+    """
+    Load an image from a file and scale it by a factor.
+    Args:
+    path (str): The path to the image file.
+    imagename (str): The name of the image file.
+    scale_factor (float): The factor by which to scale the image.
+    Returns:
+    pg.Surface: The loaded and scaled image.
+    """
     img: pg.Surface = pg.image.load(BASE_PATH + path + "/" + imagename).convert_alpha()
     return pg.transform.scale(img, (img.get_width() * scale_factor, img.get_height() * scale_factor))
 
 def load_images(path: str, scale_factor: float) -> list[pg.Surface]:
+    """
+    Get's a path, calls for every item in the path the load_image function 
+    and append the loaded image to a list, which it returns.
+    Args:
+    path (str): The path to the images.
+    scale_factor (float): The factor by which to scale the images.
+    Returns:
+    list[pg.Surface]: A list of loaded and scaled images.
+    """
     images = []
     for img_name in sorted(os.listdir(BASE_PATH + path)):  # sorted because of not Windows systems
         images.append(load_image(path + '/', img_name, scale_factor))
     return images
 
 def create_highscores_screen(font: pg.font.Font) -> tuple[pg.Surface, list[str]]:
+    """
+    Creates a highscores screen with the current highscores.
+    Args:
+    font (pg.font.Font): The font to use for the highscores.
+    Returns:
+    tuple[pg.Surface, list[str]]: A tuple containing the highscores screen and
+    the highscores as a list of strings.
+    """
     surf: pg.Surface = pg.Surface((1600, 900), pg.SRCALPHA)
     surf.fill(TRANSPARENT_BACKGROUND)
     highscores_list = []
@@ -45,6 +71,14 @@ def create_highscores_screen(font: pg.font.Font) -> tuple[pg.Surface, list[str]]
     return surf, highscores_list
 
 def sort_and_write_highscores(highscores_list: list[str], name: str, score: int) -> None:
+    """
+    Sorts the highscores list, writes the new highscore to the list, pops the last item
+    in the list to have 10 items in the list and writes the list to the highscores file.
+    Args:
+    highscores_list (list[str]): The list of highscores.
+    name (str): The name of the player.
+    score (int): The score of the player.
+    """
     highscores_list.append([str(name), int(score)])
 
     while True:
